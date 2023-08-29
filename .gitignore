@@ -1,0 +1,7 @@
+node_modules
+.idea
+**.js
+**.js.map
+temp
+config/*.yaml
+!config/*example.yaml

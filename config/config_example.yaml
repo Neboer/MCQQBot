@@ -1,0 +1,9 @@
+servertap_ws_uri: ws://10.0.0.34:4567/v1/ws/console
+servertap_key: string
+
+cqhttp_ws_uri: string
+qq_bot_id: number
+qq_group_id: number
+qq_admin_ids: number[]
+
+reconnect_interval: number
