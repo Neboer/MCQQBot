@@ -18,3 +18,11 @@
   - #sunbind qqxx mcxx 强行取消某个QQ号到mc_id的绑定*管理权限*
 - mc里，玩家可以发送指令
   - #bind xx，将自己的mc id和xx QQ号绑定起来，一个mc账号只能对应一个QQ号。
+
+## botlib
+
+这个机器人有一个bot核心框架，这个框架也是一个MC-QQ机器人的库框架。它通过交换cqhttp和servertap的数据以及请求
+servertap端点的API来工作。它对外抽象出高质量的可编程接口，用户可以直接用这套接口实现高质量的消息转发功能。
+
+机器人支持注册监听器来监听mc和qq的消息，用户可以针对不同的消息做出不同的操作。同时机器人还支持向MC和QQ发送消息，
+通过websocket与cqhttp和servertap后端连接，同时也可以通过直接请求servertap API的方法直接向MC发送广播消息。
