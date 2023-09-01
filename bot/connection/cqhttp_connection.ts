@@ -1,25 +1,27 @@
-import {OPEN} from 'ws'
+import WebSocket, {OPEN} from 'ws'
 import AsyncWebSocketConnection from "./async_ws";
 import {QQGroupMsg, QQConfirmMsg, is_qqgroup_msg, is_confirm_msg} from "../protocol/cqhttp_msg";
 import {EventEmitter} from 'events'
 import logger from "../logging";
 import {sleep} from "../utils";
 import BasicConnection from "./basic_connection";
+import {ClientRequestArgs} from "http";
 
 
 export default class CQHTTPConnection extends BasicConnection {
-    async wait_for_group_message(): Promise<QQGroupMsg> {
-        await this.wait_for_reconnection()
+    private current_message_id: number
+
+    constructor(ws_uri: string, extra_options?: WebSocket.ClientOptions | ClientRequestArgs) {
+        super(ws_uri, extra_options);
+        this.current_message_id = 0;
+    }
+
+    public async wait_for_group_message(): Promise<QQGroupMsg> {
         while (true) {
-            try {
-                let maybe_qq_msg = await this.ws_connection.read_json()
-                if (is_qqgroup_msg(maybe_qq_msg)) {
-                    return maybe_qq_msg
-                }
-            } catch (e) {
-                logger.error("等待消息失败：连接断开，等待连接恢复。")
-                // 如果在等待过程中，连接退出，则等待重连后重传。
-                await this.wait_for_reconnection()
+            let maybe_qq_msg = await this.must_read_json()
+            if (is_qqgroup_msg(maybe_qq_msg)) {
+                logger.debug(`< qq_msg:${JSON.stringify(maybe_qq_msg)}`)
+                return maybe_qq_msg
             }
         }
     }
@@ -28,7 +30,7 @@ export default class CQHTTPConnection extends BasicConnection {
         let continue_wait = true
         const must_wait_reply = async (): Promise<any> => {
             while (continue_wait) {
-                const maybe_reply: any = await this.ws_connection.read_json()
+                const maybe_reply: any = await this.must_read_json()
                 if (is_confirm_msg(maybe_reply)) {
                     if (maybe_reply.echo == msg_id) return maybe_reply
                 }
@@ -39,17 +41,16 @@ export default class CQHTTPConnection extends BasicConnection {
         continue_wait = false
         if (wait_result) return wait_result
         else {
+            logger.error(`no reply for message ${msg_id}, timeout.`)
             return
         }
     }
 
     public async send_qq_group_msg(group_id: number, message: string): Promise<number> {
-        // 如果还在重连，那么就等等。
-        await this.wait_for_reconnection()
         const msg_id = this.current_message_id
         this.current_message_id++// 发送下一段消息的时候，使用更大的id。
-        logger.info(`正在准备向群组${group_id}发送消息${msg_id}。消息内容：${message}`)
-        await this.ws_connection.send_json({
+        logger.info(`send to ${group_id} message: ${msg_id}。content: ${message}`)
+        await this.must_send_json({
             action: "send_group_msg",
             params: {
                 group_id,
@@ -57,20 +58,22 @@ export default class CQHTTPConnection extends BasicConnection {
             },
             echo: msg_id
         })
-        let reply = await this.wait_for_msg_reply(msg_id, 10000)
+        const reply = await this.wait_for_msg_reply(msg_id, 10000)
         // 如果reply为空，则消息发送报告超时。
         if (reply) {
             let confirm_msg: QQConfirmMsg = reply
             if (confirm_msg.status == "ok") {
-                logger.info(`消息${msg_id}发送成功`)
+                logger.info(`message ${msg_id} send successful`)
                 return confirm_msg.data.message_id
             } else {
-                logger.error(`消息${msg_id}发送失败！错误:${confirm_msg.message}`)
-                throw new Error(confirm_msg.message)
+                logger.error(`message ${msg_id} send fail！Error:${confirm_msg.message}`)
+                // 发送失败，账号是不是可能被风控了？
+                // throw new Error(confirm_msg.message)
+                // 这里不抛出异常的原因，是因为抛了也没用，这个异常无法得到正确的处理。
             }
         } else {
-            logger.error(`消息${msg_id}等待发送报告超时`)
-            throw new Error("message timeout")
+            logger.error(`message ${msg_id} wait for ticket timeout`)
+            // throw new Error("message reply timeout")
         }
     }
 }

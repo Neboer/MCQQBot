@@ -1,9 +1,10 @@
-servertap_ws_uri: ws://10.0.0.34:4567/v1/ws/console
-servertap_key: string
+servertap_ws_uri: ws://192.168.1.1:4567/v1/ws/console
+servertap_key: examplekey
 
-cqhttp_ws_uri: string
-qq_bot_id: number
-qq_group_id: number
-qq_admin_ids: number[]
+cqhttp_ws_uri: ws://127.0.0.1:5701
+qq_bot_id: 56789725
+qq_group_id: 1145141919
+qq_admin_ids:
+  - 2416546549
 
-reconnect_interval: number
+reconnect_interval: 1000

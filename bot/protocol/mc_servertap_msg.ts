@@ -6,5 +6,9 @@ export interface MCMsg {
 }
 
 export function is_mc_msg(raw_msg: any): raw_msg is MCMsg {
-    return ('timestampMillis' in raw_msg)
+    try {
+        return ('timestampMillis' in raw_msg)
+    } catch (e) {
+        return false
+    }
 }

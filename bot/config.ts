@@ -1,5 +1,7 @@
 import {parse, stringify} from 'yaml'
 import {readFileSync} from 'fs'
+import logging from "./logging";
+import logger from "./logging";
 
 export default class Config {
     servertap_ws_uri: string
@@ -15,6 +17,10 @@ export default class Config {
 }
 
 export function load_config(): Config {
-    const file = readFileSync('./config.yaml', {encoding: "utf8"})
-    return parse(file)
+    try {
+        const file = readFileSync('./config/config.yaml', {encoding: "utf8"})
+        return parse(file)
+    } catch (e) {
+        logger.fatal(e, "unable to find config file, error")
+    }
 }
