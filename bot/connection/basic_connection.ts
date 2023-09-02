@@ -5,7 +5,6 @@ import WebSocket, {OPEN} from "ws";
 import {sleep} from "../utils";
 import {ClientRequestArgs} from "http";
 import logger from "../logging";
-import logging from "../logging";
 
 export default class BasicConnection extends EventEmitter {
     protected ws_connection: AsyncWebSocketConnection
@@ -43,7 +42,6 @@ export default class BasicConnection extends EventEmitter {
             } catch (e) {
                 logger.error(e, `failed to connected to ${this.ws_uri}, waiting for reconnection...`)
             }
-
             // await sleep(5000)
         }
     }
@@ -54,6 +52,10 @@ export default class BasicConnection extends EventEmitter {
         this.ws_options = extra_options
         // this.ws_connection = new AsyncWebSocketConnection(this.ws_uri, extra_options)
         this.auto_reconnect()
+    }
+
+    public ping() {
+        this.ws_connection.ping()
     }
 
     // 不管底层连接是否断开，这个函数一定会返回下一条json供顶层连接使用。
@@ -70,6 +72,7 @@ export default class BasicConnection extends EventEmitter {
     }
 
     public async must_send_json(data: any) {
+        await this.wait_for_reconnection()
         return await this.ws_connection.send_json(data)
     }
 }

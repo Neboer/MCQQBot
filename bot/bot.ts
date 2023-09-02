@@ -1,30 +1,40 @@
-import WebSocket from 'ws'
+import logger from "./logging";
 import Config from './config'
-import {sleep} from "./utils";
-import {MQQGroupMsg} from "./mqq_msg";
 import {is_qqgroup_msg, QQGroupMsg} from './protocol/cqhttp_msg';
 import {MQQGroupMsgFilter, QQ_MSG_CB} from "./qq_listener";
-import QQListener from "./qq_listener";
+import {is_mc_msg} from "./protocol/mc_servertap_msg";
+
 import CQHTTPConnection from "./connection/cqhttp_connection";
 import MCServerTapConnection from "./connection/mcsvtap_connection";
-import {EventEmitter} from "events";
+import MCServerTapAPI from "./connection/mcsvtap_api";
+
+import QQListener from "./qq_listener";
 import MCListener, {MC_MSG_CB} from "./mc_listener";
-import {is_mc_msg} from "./protocol/mc_servertap_msg";
-import logger from "./logging";
 
 
 export default class Bot {
     private qq_connection: CQHTTPConnection
     private mc_connection: MCServerTapConnection
+    private mc_api: MCServerTapAPI
     public readonly bot_config: Config
 
     private qq_listeners: QQListener[]
     private mc_listeners: MCListener[]
 
-    private readonly event_emitter: EventEmitter
+    // 每当CQHTTP连接出现问题时，执行此函数。
+    // 一般情况下，重启CQHTTP或对应的签名服务便可解决。
+    public CQHTTP_error_action: () => void
 
     public async send_qqgroup_message(qq_group_id: number, message_text: string) {
-        return this.qq_connection.send_qq_group_msg(qq_group_id, message_text)
+        try {
+            return this.qq_connection.send_qq_group_msg(qq_group_id, message_text)
+        } catch (e) {
+            if (e.name == "CQHTTP REPLY TIMEOUT") {
+                logger.error(`CQHTTP reply timeout, qq instance may be corruption. executing CQHTTP_error_action`)
+                this.CQHTTP_error_action()
+            }
+        }
+
     }
 
     public async send_default_qqgroup_message(message_text: string) {
@@ -35,12 +45,19 @@ export default class Bot {
         return await this.mc_connection.send_minecraft_command(message_content)
     }
 
+    public async broadcast_mc_message(message_content: string) {
+        return await this.mc_api.broadcast_message(message_content)
+    }
+
     constructor(bot_config: Config) {
         this.bot_config = bot_config
         this.qq_connection = new CQHTTPConnection(this.bot_config.cqhttp_ws_uri)
-        this.mc_connection = new MCServerTapConnection(this.bot_config.servertap_ws_uri, this.bot_config.servertap_key)
+        this.mc_connection = new MCServerTapConnection(this.bot_config.get_servertap_ws_url(), this.bot_config.servertap_key)
+        this.mc_api = new MCServerTapAPI(this.bot_config.get_servertap_api_url(), this.bot_config.servertap_key)
         this.qq_listeners = []
         this.mc_listeners = []
+        this.CQHTTP_error_action = () => {
+        }
         logger.info(`bot init`)
     }
 

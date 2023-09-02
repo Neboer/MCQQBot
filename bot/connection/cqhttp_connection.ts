@@ -68,8 +68,7 @@ export default class CQHTTPConnection extends BasicConnection {
             } else {
                 logger.error(`message ${msg_id} send fail！Error:${confirm_msg.message}`)
                 // 发送失败，账号是不是可能被风控了？
-                // throw new Error(confirm_msg.message)
-                // 这里不抛出异常的原因，是因为抛了也没用，这个异常无法得到正确的处理。
+                throw new Error("CQHTTP REPLY TIMEOUT")
             }
         } else {
             logger.error(`message ${msg_id} wait for ticket timeout`)

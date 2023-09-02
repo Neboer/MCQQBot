@@ -10,7 +10,8 @@ const KyaruBot = new Bot(bot_config)
 
 KyaruBot.on_qq_group_chat(async (bot_instance: Bot, m_qq_msg: MQQGroupMsg) => {
     logger.info(`qq chat message ${m_qq_msg.message_text}`)
-    await bot_instance.send_mc_message(`say ${m_qq_msg.message_text}`)
+    await bot_instance.broadcast_mc_message(`[来自群聊] <${m_qq_msg.sender_name}> ${m_qq_msg.message_text}`)
+    // await bot_instance.send_mc_message(`say ${m_qq_msg.message_text}`)
 })
 
 KyaruBot.on_mc_log(/^<(?<name>.*?)> (?<message>.*)$/, async (bot_instance, m_mc_msg) => {

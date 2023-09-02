@@ -18,5 +18,10 @@ export default class MCServerTapConnection extends BasicConnection {
                 "Cookie": `x-servertap-key=${servertap_key}`
             }
         });
+        // servertap连接30秒无响应会自动断开，因此每隔25秒发个ping。
+        setInterval(() => {
+            this.ping()
+            logger.info("ping packet sent")
+        }, 25000)
     }
 }

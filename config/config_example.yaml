@@ -1,4 +1,5 @@
-servertap_ws_uri: ws://192.168.1.1:4567/v1/ws/console
+servertap_host: 192.168.1.1
+servertap_port: 4567
 servertap_key: examplekey
 
 cqhttp_ws_uri: ws://127.0.0.1:5701
