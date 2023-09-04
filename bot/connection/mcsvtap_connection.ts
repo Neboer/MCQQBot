@@ -1,6 +1,6 @@
 import BasicConnection from "./basic_connection";
 import logger from "../logging";
-import {MCMsg} from "../protocol/mc_servertap_msg";
+import {MCMsg} from "../schema/mc_servertap_msg";
 import {EventEmitter} from "events";
 
 export default class MCServerTapConnection extends BasicConnection {
@@ -18,10 +18,10 @@ export default class MCServerTapConnection extends BasicConnection {
                 "Cookie": `x-servertap-key=${servertap_key}`
             }
         });
-        // servertap连接30秒无响应会自动断开，因此每隔25秒发个ping。
+        // servertap连接30秒无响应会自动断开，因此每隔10秒发个ping。
         setInterval(() => {
             this.ping()
-            logger.info("ping packet sent")
-        }, 25000)
+            logger.debug("ping packet sent")
+        }, 10000)
     }
 }

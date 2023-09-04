@@ -1,9 +1,9 @@
 import {MQQGroupMsg} from "./mqq_msg";
 // 重构：这里循环依赖。
 import Bot from "./bot";
-import {QQGroupMsg} from "./protocol/cqhttp_msg";
+import {QQGroupMsg} from "./schema/cqhttp_msg";
 
-export type QQ_MSG_CB = (bot_instance: Bot, m_qq_msg: MQQGroupMsg) => void
+export type QQ_MSG_CB = (bot_instance: Bot, m_qq_msg: MQQGroupMsg) => void | Promise<void>
 
 // 根据消息的不同特点提前过滤消息，这样就避免了在command_cb里过滤消息而引起的嵌套。
 export interface MQQGroupMsgFilter {
@@ -39,10 +39,10 @@ export default class QQListener {
         return true;
     }
 
-    public exec_on(bot_instance: Bot, qq_group_msg: QQGroupMsg) {
+    public async exec_on(bot_instance: Bot, qq_group_msg: QQGroupMsg) {
         const meta_qq_group_message = new MQQGroupMsg(qq_group_msg, bot_instance.bot_config)
         if (this.is_matching(meta_qq_group_message)) {
-            this.action(bot_instance, meta_qq_group_message)
+            return await this.action(bot_instance, meta_qq_group_message)
         }
     }
 }

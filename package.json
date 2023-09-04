@@ -1,4 +1,18 @@
 {
+  "name": "mc-qq-bot",
+  "version": "0.0.1",
+  "description": "QQ-MC消息互通机器人",
+  "main": "main.js",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Neboer/MCQQBot"
+  },
+  "author": "Neboer",
+  "license": "MIT",
+  "scripts": {
+    "build": "tsc",
+    "start": "node main.js"
+  },
   "dependencies": {
     "@types/node": "^20.4.10",
     "@types/pino": "^7.0.5",

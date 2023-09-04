@@ -1,4 +1,6 @@
 import {fetch} from "undici";
+import logger from "../logging";
+import OnlinePlayer from "../schema/mcsvtap_api/OnlinePlayer";
 
 export default class MCServerTapAPI {
     private readonly api_host: string
@@ -11,20 +13,45 @@ export default class MCServerTapAPI {
         this.api_key = api_key
     }
 
-    protected async post_json_api(endpoint: string, data: Object) {
+    protected async post_form_api(endpoint: string, parameter_table: { [key: string]: string }) {
+        let params = new URLSearchParams();
+        for (let key in parameter_table)
+            params.append(key, parameter_table[key]);
         return await fetch(`${this.api_host}${endpoint}`, {
             method: "POST",
             headers: {
-                "Content-Type": "application/json",
+                'accept': 'application/json',
+                'Content-Type': 'application/x-www-form-urlencoded',
                 "Cookie": `x-servertap-key=${this.api_key}`
             },
             redirect: "follow", // manual, *follow, error
-            body: JSON.stringify(data), // body data type must match "Content-Type" header
+            body: params
         });
     }
 
+    protected async get_json_api(endpoint: string) {
+        return await fetch(`${this.api_host}${endpoint}`, {
+            method: "GET",
+            headers: {
+                'accept': 'application/json',
+                "Cookie": `x-servertap-key=${this.api_key}`
+            },
+            redirect: "follow"
+        })
+    }
+
     public async broadcast_message(message_content: string) {
-        const res = await this.post_json_api("/v1/chat/broadcast", {"message": message_content})
-        console.log(res)
+        const res = await this.post_form_api("/v1/chat/broadcast", {"message": message_content})
+        if (res.status != 200) {
+            logger.error(`broadcast failed! code ${res.status} ${res.statusText} error: ${await res.json()}`)
+        }
+    }
+
+    public async get_player_list(): Promise<OnlinePlayer[]> {
+        const res = await this.get_json_api("/v1/players")
+        if (res.status != 200) {
+            logger.error(`get player list failed! code ${res.status} ${res.statusText} error: ${await res.json()}`)
+        }
+        return (await res.json() as OnlinePlayer[])
     }
 }

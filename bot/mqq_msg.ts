@@ -1,4 +1,4 @@
-import {QQGroupMsg} from "./protocol/cqhttp_msg";
+import {QQGroupMsg} from "./schema/cqhttp_msg";
 import Config from "./config";
 
 
@@ -44,7 +44,7 @@ export class MQQGroupMsg {
             // 以#开头的所有纯文本消息会被认为是指令。
             this.is_command = true
             let full_args: string[] = this.message_text.split(" ")
-            this.command_name = full_args[0]
+            this.command_name = full_args[0].slice(1)// 移除开始的#符号
             this.command_parameters = full_args.slice(1)
         } else {
             this.is_command = false

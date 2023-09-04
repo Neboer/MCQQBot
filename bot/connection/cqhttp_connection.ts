@@ -1,6 +1,6 @@
 import WebSocket, {OPEN} from 'ws'
 import AsyncWebSocketConnection from "./async_ws";
-import {QQGroupMsg, QQConfirmMsg, is_qqgroup_msg, is_confirm_msg} from "../protocol/cqhttp_msg";
+import {QQGroupMsg, QQConfirmMsg, is_qqgroup_msg, is_confirm_msg} from "../schema/cqhttp_msg";
 import {EventEmitter} from 'events'
 import logger from "../logging";
 import {sleep} from "../utils";
