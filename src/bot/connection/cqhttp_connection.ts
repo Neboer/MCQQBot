@@ -10,37 +10,39 @@ import {ClientRequestArgs} from "http";
 class CQHTTPMessageSendStateManager {
     // 每当一个消息被发送的时候，就需要调用本方法中的send_qq_message方法发送实际的消息。这个
     private current_message_id_counter: Counter = new Counter()
+    private qq_connection: BasicConnection
+
+    constructor(connection: BasicConnection) {
+        this.qq_connection = connection
+    }
 
     // 这个msg是不需要带echo字段的，这个Manager会自己处理回报消息的匹配问题。
     // 这个send_qq_message方法会一直阻塞，直到超时或消息返回。
-    public async send_qq_message(msg: any, connection: BasicConnection, timeout_sec: number = 10) {
+    public async send_qq_message(msg: any, timeout_sec: number = 10): Promise<QQConfirmMsg> {
         msg.echo = this.current_message_id_counter.count()
-        await connection.must_send_json(msg)
-        const wait_for_reply = connection.async_once('CQ_reply_msg_received', true, [msg.echo])
-        const wait_for_timeout = sleep(timeout_sec*1000)
-        const maybe_reply = Promise.race([wait_for_reply, wait_for_timeout])
-        if (is_confirm_msg(maybe_reply))
+        await this.qq_connection.must_send_json(msg)
+        try {
+            return (await this.qq_connection.async_once('CQ_confirm_msg_received', [msg.echo], timeout_sec * 1000))[0]
+        } catch (e) {
+            if (e.message == 'timeout') {
+                throw new Error('CQHTTP CONFIRM TIMEOUT') // 重新发送一个错误。
+            } else {
+                throw e // 否则，将e抛出。
+            }
+        }
+    }
+
+    // 同步方法，用来通知send_qq_message可以结束了。
+    public resolve_qq_confirm_msg(confirm_msg: QQConfirmMsg) {
+        this.qq_connection.emit('CQ_confirm_msg_received', confirm_msg.echo, confirm_msg)
     }
 }
 
 export default class CQHTTPConnection extends BasicConnection {
-    private current_message_id: number
+    private send_message_manager = new CQHTTPMessageSendStateManager(this)
 
     constructor(ws_uri: string, extra_options?: WebSocket.ClientOptions | ClientRequestArgs) {
         super(ws_uri, extra_options);
-        this.current_message_id = 0;
-    }
-
-    public async wait_for_group_message(): Promise<QQGroupMsg> {
-        const waiter_promise = this.async_once("CQHTTP_qqgroup_msg", false)
-
-        while (true) {
-            let maybe_qq_msg = await this.stream_read_json()
-            if (is_qqgroup_msg(maybe_qq_msg)) {
-                logger.debug(`< qq_msg:${JSON.stringify(maybe_qq_msg)}`)
-                return maybe_qq_msg
-            }
-        }
     }
 
     // 消息分为三类：消息回报、心跳包和其他消息。其他。其中有且仅有其他消息可以通过read_msg方法读取。
@@ -49,11 +51,15 @@ export default class CQHTTPConnection extends BasicConnection {
         while (true) {
             const qq_message = await this.stream_read_json()
             if (is_confirm_msg(qq_message)) {
-                this.emit("CQHTTP_confirm_msg", qq_message)
+                logger.info('CQHTTPConnection recv qq reply msg')
+                this.send_message_manager.resolve_qq_confirm_msg(qq_message)
             } else if (is_heartbeat_msg(qq_message)) {
-
+                logger.debug('CQHTTPConnection recv qq heartbeat msg')
             } else {
-
+                logger.info('CQHTTPConnection recv qq general msg')
+                // 注意，当收到正确的消息时，CQ_msg_received消息会被触发。
+                // 这个消息的处理方法有很多，是不是可以直接建立监听器来处理消息？
+                this.emit('CQ_msg_received', qq_message)
             }
         }
     }
@@ -80,6 +86,8 @@ export default class CQHTTPConnection extends BasicConnection {
     }
 
     public async send_qq_group_msg(group_id: number, message: string): Promise<number> {
+
+
         const msg_id = this.current_message_id
         this.current_message_id++// 发送下一段消息的时候，使用更大的id。
         logger.info(`send to ${group_id} message: ${msg_id}。content: ${message}`)

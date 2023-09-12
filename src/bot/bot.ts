@@ -30,7 +30,7 @@ export default class Bot {
         try {
             return await this.qq_connection.send_qq_group_msg(qq_group_id, message_text)
         } catch (e) {
-            if (e.name == "CQHTTP REPLY TIMEOUT") {
+            if (e.message == "CQHTTP REPLY TIMEOUT") {
                 logger.error(`CQHTTP reply timeout, qq instance may be corrupted. executing CQHTTP_error_action`)
                 this.CQHTTP_error_action()
             }
