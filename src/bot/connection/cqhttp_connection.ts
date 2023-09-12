@@ -1,12 +1,27 @@
 import WebSocket, {OPEN} from 'ws'
 import AsyncWebSocketConnection from "./async_ws";
-import {QQGroupMsg, QQConfirmMsg, is_qqgroup_msg, is_confirm_msg} from "../schema/cqhttp_msg";
+import {QQGroupMsg, QQConfirmMsg, is_qqgroup_msg, is_confirm_msg, is_heartbeat_msg} from "../schema/cqhttp_msg";
 import {EventEmitter} from 'events'
 import logger from "../logging";
-import {sleep} from "../utils";
+import {Counter, sleep} from "../utils";
 import BasicConnection from "./basic_connection";
 import {ClientRequestArgs} from "http";
 
+class CQHTTPMessageSendStateManager {
+    // 每当一个消息被发送的时候，就需要调用本方法中的send_qq_message方法发送实际的消息。这个
+    private current_message_id_counter: Counter = new Counter()
+
+    // 这个msg是不需要带echo字段的，这个Manager会自己处理回报消息的匹配问题。
+    // 这个send_qq_message方法会一直阻塞，直到超时或消息返回。
+    public async send_qq_message(msg: any, connection: BasicConnection, timeout_sec: number = 10) {
+        msg.echo = this.current_message_id_counter.count()
+        await connection.must_send_json(msg)
+        const wait_for_reply = connection.async_once('CQ_reply_msg_received', true, [msg.echo])
+        const wait_for_timeout = sleep(timeout_sec*1000)
+        const maybe_reply = Promise.race([wait_for_reply, wait_for_timeout])
+        if (is_confirm_msg(maybe_reply))
+    }
+}
 
 export default class CQHTTPConnection extends BasicConnection {
     private current_message_id: number
@@ -17,8 +32,10 @@ export default class CQHTTPConnection extends BasicConnection {
     }
 
     public async wait_for_group_message(): Promise<QQGroupMsg> {
+        const waiter_promise = this.async_once("CQHTTP_qqgroup_msg", false)
+
         while (true) {
-            let maybe_qq_msg = await this.must_read_json()
+            let maybe_qq_msg = await this.stream_read_json()
             if (is_qqgroup_msg(maybe_qq_msg)) {
                 logger.debug(`< qq_msg:${JSON.stringify(maybe_qq_msg)}`)
                 return maybe_qq_msg
@@ -26,11 +43,27 @@ export default class CQHTTPConnection extends BasicConnection {
         }
     }
 
+    // 消息分为三类：消息回报、心跳包和其他消息。其他。其中有且仅有其他消息可以通过read_msg方法读取。
+    private async router() {
+        // 唯一收发包函数，根据不同的包，触发不同类型的事件。
+        while (true) {
+            const qq_message = await this.stream_read_json()
+            if (is_confirm_msg(qq_message)) {
+                this.emit("CQHTTP_confirm_msg", qq_message)
+            } else if (is_heartbeat_msg(qq_message)) {
+
+            } else {
+
+            }
+        }
+    }
+
+
     private async wait_for_msg_reply(msg_id: number, timeout_ms: number) {
         let continue_wait = true
         const must_wait_reply = async (): Promise<any> => {
             while (continue_wait) {
-                const maybe_reply: any = await this.must_read_json()
+                const maybe_reply: any = await this.stream_read_json()
                 if (is_confirm_msg(maybe_reply)) {
                     if (maybe_reply.echo == msg_id) return maybe_reply
                 }

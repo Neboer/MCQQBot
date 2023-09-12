@@ -5,7 +5,7 @@ import {EventEmitter} from "events";
 
 export default class MCServerTapConnection extends BasicConnection {
     async wait_for_minecraft_log(): Promise<MCMsg> {
-        return await this.must_read_json()
+        return await this.stream_read_json()
     }
 
     async send_minecraft_command(command: string) {

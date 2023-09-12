@@ -1,12 +1,13 @@
 // QQ连接和MC连接的基类，二者都从此类中衍生。
 import AsyncWebSocketConnection from "./async_ws";
-import {EventEmitter} from "events";
 import WebSocket, {OPEN} from "ws";
 import {sleep} from "../utils";
 import {ClientRequestArgs} from "http";
 import logger from "../logging";
+import AsyncEventEmitter from "../lib/AsyncEventEmitter";
+// import {EventEmitter} from "events";
 
-export default class BasicConnection extends EventEmitter {
+export default class BasicConnection extends AsyncEventEmitter {
     protected ws_connection: AsyncWebSocketConnection
     protected readonly ws_uri: string
     protected readonly ws_options?: WebSocket.ClientOptions | ClientRequestArgs
@@ -29,8 +30,10 @@ export default class BasicConnection extends EventEmitter {
     protected async auto_reconnect() {
         // 自动重新连接的逻辑：
         // 两次连接间隔最少为5秒
+        // 没有disconnect方法，在任何时候都必须重连！
         while (true) {
             try {
+                if (this.ws_connection) delete this.ws_connection
                 this.ws_connection = new AsyncWebSocketConnection(this.ws_uri, this.ws_options)
                 this.ws_connection.once("open", () => {
                     logger.info(`connected to ${this.ws_uri}`)
@@ -38,7 +41,7 @@ export default class BasicConnection extends EventEmitter {
                 })
                 logger.info(`trying to connect to ${this.ws_uri}`)
                 // 至少重新等待5秒再重连。如果连接保持时间超过5秒，则立即重连。
-                await Promise.all([sleep(5000), this.ws_connection.wait_disconnect()])
+                await Promise.all([sleep(5000), this.ws_connection.wait_disconnect])
             } catch (e) {
                 logger.error(e, `failed to connected to ${this.ws_uri}, waiting for reconnection...`)
             }
@@ -59,8 +62,8 @@ export default class BasicConnection extends EventEmitter {
     }
 
     // 不管底层连接是否断开，这个函数一定会返回下一条json供顶层连接使用。
-    // 这个方法可以避免外部连接显式的等待，更好的处理连接失败的情况。
-    public async must_read_json() {
+    // must_read_json变成buffer方法，消息读一个少一个。
+    async stream_read_json() {
         while (true) {
             try {
                 await this.wait_for_reconnection()
