@@ -6,6 +6,7 @@ import logger from "../logging";
 import {Counter, sleep} from "../utils";
 import BasicConnection from "./basic_connection";
 import {ClientRequestArgs} from "http";
+import CancelablePromise from "cancelable-promise";
 
 class CQHTTPMessageSendStateManager {
     // 每当一个消息被发送的时候，就需要调用本方法中的send_qq_message方法发送实际的消息。这个
@@ -38,6 +39,8 @@ class CQHTTPMessageSendStateManager {
     }
 }
 
+type CQHTTPMsg = QQGroupMsg | any
+
 export default class CQHTTPConnection extends BasicConnection {
     private send_message_manager = new CQHTTPMessageSendStateManager(this)
 
@@ -52,6 +55,7 @@ export default class CQHTTPConnection extends BasicConnection {
             const qq_message = await this.stream_read_json()
             if (is_confirm_msg(qq_message)) {
                 logger.info('CQHTTPConnection recv qq reply msg')
+                // 收到回调，确认消息。
                 this.send_message_manager.resolve_qq_confirm_msg(qq_message)
             } else if (is_heartbeat_msg(qq_message)) {
                 logger.debug('CQHTTPConnection recv qq heartbeat msg')
@@ -64,56 +68,17 @@ export default class CQHTTPConnection extends BasicConnection {
         }
     }
 
-
-    private async wait_for_msg_reply(msg_id: number, timeout_ms: number) {
-        let continue_wait = true
-        const must_wait_reply = async (): Promise<any> => {
-            while (continue_wait) {
-                const maybe_reply: any = await this.stream_read_json()
-                if (is_confirm_msg(maybe_reply)) {
-                    if (maybe_reply.echo == msg_id) return maybe_reply
-                }
-            }
-        }
-        // 是先超时，还是先收到准确的消息回复？当然，如果连接断开，异常抛出，那这个reply就别想等到了，直接退出吧。
-        let wait_result = await Promise.race([sleep(timeout_ms), must_wait_reply()])
-        continue_wait = false
-        if (wait_result) return wait_result
-        else {
-            logger.error(`no reply for message ${msg_id}, timeout.`)
-            return
-        }
+    public read_qq_msg(): CancelablePromise<CQHTTPMsg> {
+        return this.async_once('CQ_msg_received')
     }
 
-    public async send_qq_group_msg(group_id: number, message: string): Promise<number> {
-
-
-        const msg_id = this.current_message_id
-        this.current_message_id++// 发送下一段消息的时候，使用更大的id。
-        logger.info(`send to ${group_id} message: ${msg_id}。content: ${message}`)
-        await this.must_send_json({
+    public send_qq_group_msg(group_id: number, message: string): Promise<QQConfirmMsg> {
+        return this.send_message_manager.send_qq_message({
             action: "send_group_msg",
             params: {
                 group_id,
                 message
-            },
-            echo: msg_id
-        })
-        const reply = await this.wait_for_msg_reply(msg_id, 10000)
-        // 如果reply为空，则消息发送报告超时。
-        if (reply) {
-            let confirm_msg: QQConfirmMsg = reply
-            if (confirm_msg.status == "ok") {
-                logger.info(`message ${msg_id} send successful`)
-                return confirm_msg.data.message_id
-            } else {
-                logger.error(`message ${msg_id} send fail！Error:${confirm_msg.message}`)
-                // 发送失败，账号是不是可能被风控了？
-                throw new Error("CQHTTP REPLY TIMEOUT")
             }
-        } else {
-            logger.error(`message ${msg_id} wait for ticket timeout`)
-            // throw new Error("message reply timeout")
-        }
+        })
     }
 }
