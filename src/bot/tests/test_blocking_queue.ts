@@ -4,10 +4,11 @@ import {sleep} from "../utils";
 const q = new AsyncBlockingQueue<number>()
 
 async function test_queue() {
-    sleep(1000);
     q.enqueue(1)
-    sleep(3000);
     q.enqueue(2)
+    q.enqueue(3)
+    await sleep(4000)
+    q.enqueue(4)
 }
 
 async function test_dequeue() {
@@ -20,4 +21,4 @@ async function test_dequeue() {
 
 test_queue()
 test_dequeue()
-sleep(999999)
+sleep(99999)

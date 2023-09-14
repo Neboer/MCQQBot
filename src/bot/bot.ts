@@ -81,22 +81,24 @@ export default class Bot {
         let wait_mc_message = this.mc_connection.read_mc_msg()
         while (true) {
             const incoming_packet = await Promise.race([wait_mc_message, wait_qq_message])
-            if (is_qqgroup_msg(incoming_packet)) {
-                logger.info(`< qq: ${JSON.stringify(incoming_packet)}`)
-                wait_qq_message = this.qq_connection.read_qq_msg()
-                for (const current_qq_listener of this.qq_listeners) {
-                    await current_qq_listener.exec_on(this, incoming_packet)
-                }
-            } else if (is_mc_msg(incoming_packet)) {
+            if (is_mc_msg(incoming_packet)) {
                 logger.info(`< mc: ${JSON.stringify(incoming_packet)}`)
                 wait_mc_message = this.mc_connection.read_mc_msg()
                 for (const current_mc_listener of this.mc_listeners) {
                     await current_mc_listener.exec_on(this, incoming_packet)
                 }
             } else {
-                logger.debug(`unknown packet received, ignore. ${JSON.stringify(incoming_packet)}`)
+                // 不是mc消息，一定是qq消息！
+                wait_qq_message = this.qq_connection.read_qq_msg()
+                if (is_qqgroup_msg(incoming_packet)) {
+                    logger.info(`< qq : ${JSON.stringify(incoming_packet)}`)
+                    for (const current_qq_listener of this.qq_listeners) {
+                        await current_qq_listener.exec_on(this, incoming_packet)
+                    }
+                } else {
+                    logger.debug(`< unknown qq msg : ${JSON.stringify(incoming_packet)}`)
+                }
             }
-            await sleep(1000)
         }
     }
 
