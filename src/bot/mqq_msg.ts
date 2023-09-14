@@ -33,7 +33,7 @@ export class MQQGroupMsg {
         this.is_plain_text = no_cq_msg == ori_group_msg.raw_message
 
         this.message_text = MQQGroupMsg.unescape_cq_encoded_str(no_cq_msg)
-        this.sender_name = ori_group_msg.sender.nickname
+        this.sender_name = ori_group_msg.sender.card
         this.sender_id = ori_group_msg.sender.user_id
         this.group_id = ori_group_msg.group_id
 

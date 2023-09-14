@@ -70,6 +70,7 @@ KyaruBot.get_mc_online_players().then(players => {
 
     KyaruBot.on_qq_group_command("mc", false, async (bot_instance, m_qq_msg) => {
         logger.info(`query online players`)
+        LightingMCServer.updatePlayersListFromServerTap(await bot_instance.get_mc_online_players())
         await bot_instance.send_default_qqgroup_message(
             `当前服务器总人数${LightingMCServer.players.length}：\n` +
             LightingMCServer.players.map(server_p => server_p.name).join('\n')

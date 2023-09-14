@@ -5,7 +5,7 @@ import logger from "../logging";
 import AsyncBlockingQueue from "../queue";
 
 export default class AsyncWebSocketConnection extends WebSocket {
-    private msg_buffer: AsyncBlockingQueue<string>
+    private msg_buffer: AsyncBlockingQueue<string> = new AsyncBlockingQueue<string>()
     public readonly wait_disconnect: Promise<void> // 保留一个promise，一旦这个promise退出，则整个连接断开。
 
     constructor(address: string | URL, options?: WebSocket.ClientOptions | ClientRequestArgs) {

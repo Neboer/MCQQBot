@@ -7,7 +7,7 @@ let p: CancelablePromise
 
 async function waiter() {
     console.log("a")
-    p = s.async_once("test_ev",true,[1])
+    p = s.async_once("test_ev",[],1)
     await p
     console.log("b")
 }

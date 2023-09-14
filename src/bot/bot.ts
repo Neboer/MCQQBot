@@ -4,13 +4,16 @@ import {is_qqgroup_msg, QQGroupMsg} from './schema/cqhttp_msg';
 import {MQQGroupMsgFilter, QQ_MSG_CB} from "./qq_listener";
 import {is_mc_msg} from "./schema/mc_servertap_msg";
 
-import CQHTTPConnection from "./connection/cqhttp_connection";
+import CQHTTPConnection, {CQHTTPMsg} from "./connection/cqhttp_connection";
 import MCServerTapConnection from "./connection/mcsvtap_connection";
 import MCServerTapAPI from "./connection/mcsvtap_api";
 
 import QQListener from "./qq_listener";
 import MCListener, {MC_MSG_CB} from "./mc_listener";
 import OnlinePlayer from "./schema/mcsvtap_api/OnlinePlayer";
+import CancelablePromise, {cancelable} from "cancelable-promise";
+import {sleep} from "./utils";
+import logging from "./logging";
 
 
 export default class Bot {
@@ -51,7 +54,12 @@ export default class Bot {
     }
 
     public async get_mc_online_players(): Promise<OnlinePlayer[]> {
-        return await this.mc_api.get_player_list()
+        try {
+            return await this.mc_api.get_player_list()
+        } catch (e) {
+            logger.error(`get_mc_online_players error: ${e}`)
+            return []
+        }
     }
 
     constructor(bot_config: Config) {
@@ -69,26 +77,26 @@ export default class Bot {
     // 启动整个机器人的方法
     public async run() {
         logger.info("bot is starting...")
-        let wait_qq_message = this.qq_connection.wait_for_group_message()
-        let wait_mc_message = this.mc_connection.wait_for_minecraft_log()
+        let wait_qq_message: CancelablePromise<CQHTTPMsg> = this.qq_connection.read_qq_msg()
+        let wait_mc_message = this.mc_connection.read_mc_msg()
         while (true) {
             const incoming_packet = await Promise.race([wait_mc_message, wait_qq_message])
-            // const incoming_packet = await this.qq_connection.wait_for_group_message()
             if (is_qqgroup_msg(incoming_packet)) {
-                wait_qq_message = this.qq_connection.wait_for_group_message()
                 logger.info(`< qq: ${JSON.stringify(incoming_packet)}`)
+                wait_qq_message = this.qq_connection.read_qq_msg()
                 for (const current_qq_listener of this.qq_listeners) {
                     await current_qq_listener.exec_on(this, incoming_packet)
                 }
             } else if (is_mc_msg(incoming_packet)) {
-                wait_mc_message = this.mc_connection.wait_for_minecraft_log()
                 logger.info(`< mc: ${JSON.stringify(incoming_packet)}`)
+                wait_mc_message = this.mc_connection.read_mc_msg()
                 for (const current_mc_listener of this.mc_listeners) {
                     await current_mc_listener.exec_on(this, incoming_packet)
                 }
             } else {
-                logger.debug("unknown packet received, ignore.")
+                logger.debug(`unknown packet received, ignore. ${JSON.stringify(incoming_packet)}`)
             }
+            await sleep(1000)
         }
     }
 

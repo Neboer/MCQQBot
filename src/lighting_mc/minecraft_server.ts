@@ -1,5 +1,5 @@
 import {ServerPlayer, PlayerOnlineState} from "./serverPlayer";
-import OnlinePlayer from "../../bot/schema/mcsvtap_api/OnlinePlayer";
+import OnlinePlayer from "../bot/schema/mcsvtap_api/OnlinePlayer";
 
 export default class MCServer {
     public players: ServerPlayer[] = []

@@ -39,13 +39,14 @@ class CQHTTPMessageSendStateManager {
     }
 }
 
-type CQHTTPMsg = QQGroupMsg | any
+export type CQHTTPMsg = QQGroupMsg | any
 
 export default class CQHTTPConnection extends BasicConnection {
     private send_message_manager = new CQHTTPMessageSendStateManager(this)
 
     constructor(ws_uri: string, extra_options?: WebSocket.ClientOptions | ClientRequestArgs) {
         super(ws_uri, extra_options);
+        this.router()
     }
 
     // 消息分为三类：消息回报、心跳包和其他消息。其他。其中有且仅有其他消息可以通过read_msg方法读取。
@@ -69,7 +70,9 @@ export default class CQHTTPConnection extends BasicConnection {
     }
 
     public read_qq_msg(): CancelablePromise<CQHTTPMsg> {
-        return this.async_once('CQ_msg_received')
+        return this.async_once('CQ_msg_received').then(res => {
+            return res[0]
+        })
     }
 
     public send_qq_group_msg(group_id: number, message: string): Promise<QQConfirmMsg> {
