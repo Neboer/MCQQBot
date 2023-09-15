@@ -75,12 +75,23 @@ export default class CQHTTPConnection extends BasicConnection {
         })
     }
 
-    public send_qq_group_msg(group_id: number, message: string): Promise<QQConfirmMsg> {
+    private static escape_cq_encoded_str(input_string: string): string {
+        const replacements_table = {
+            '&': '&amp;',
+            '[': '&#91;',
+            ']': '&#93;',
+            ',': '&#44;'
+        };
+
+        return input_string.replace(/&\[],/g, match => replacements_table[match]);
+    }
+
+    public send_qq_group_msg(group_id: number, message: string, plain_text = true): Promise<QQConfirmMsg> {
         return this.send_message_manager.send_qq_message({
             action: "send_group_msg",
             params: {
                 group_id,
-                message
+                'message': plain_text ? CQHTTPConnection.escape_cq_encoded_str(message) : message
             }
         })
     }

@@ -29,7 +29,7 @@ export default class Bot {
     // 一般情况下，重启CQHTTP或对应的签名服务便可解决。
     public CQHTTP_error_action: () => void
 
-    public async send_qqgroup_message(qq_group_id: number, message_text: string) {
+    public async send_qqgroup_message(qq_group_id: number, message_text: string, plain_text = true) {
         try {
             return await this.qq_connection.send_qq_group_msg(qq_group_id, message_text)
         } catch (e) {
@@ -41,8 +41,8 @@ export default class Bot {
 
     }
 
-    public async send_default_qqgroup_message(message_text: string) {
-        return await this.send_qqgroup_message(this.bot_config.qq_group_id, message_text)
+    public async send_default_qqgroup_message(message_text: string, plain_text = true) {
+        return await this.send_qqgroup_message(this.bot_config.qq_group_id, message_text, plain_text)
     }
 
     public async send_mc_message(message_content: string) {
