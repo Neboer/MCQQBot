@@ -1,5 +1,6 @@
 import {ServerPlayer, PlayerOnlineState} from "./serverPlayer";
 import OnlinePlayer from "../bot/schema/mcsvtap_api/OnlinePlayer";
+import logger from "../bot/logging";
 
 export default class MCServer {
     public players: ServerPlayer[] = []
@@ -23,7 +24,6 @@ export default class MCServer {
         const player_index = this.players.findIndex(v => v.name == name)
         if (player_index > -1) {
             this.players.splice(player_index, 1)
-            // delete this.players[player_index]
             return true
         } else return false
     }
@@ -36,21 +36,22 @@ export default class MCServer {
             if (!svtap_response_data.find(online_p => online_p.displayName == server_p.name)) {
                 // 如果请求的玩家列表里没有玩家，说明列表中多了个玩家。
                 player_index_to_delete.push(index)
+                logger.warn(`extra player in server player list ${server_p.name}`)
             }
         })
         // 统一删除多余的玩家。
         player_index_to_delete.forEach(player_index_to_delete => {
             this.players.splice(player_index_to_delete, 1)
-            // delete this.players[player_index_to_delete]
         })
 
-        svtap_response_data.forEach((playerData) => {
-            if (!this.get_player_by_name(playerData.displayName)) {
-                // 只有找不到时，才会添加。
-                const current_player = this.player_login(playerData.displayName)
+        svtap_response_data.forEach((real_online_p) => {
+            if (!this.get_player_by_name(real_online_p.displayName)) {
+                // 我们的玩家列表缺少玩家，需要添加一个新玩家，赶紧登录一下。
+                logger.warn(`missing player in server player list ${real_online_p.displayName}`)
+                const current_player = this.player_login(real_online_p.displayName)
                 current_player.state = PlayerOnlineState.login;
-                current_player.ip_addr = playerData.address;
-                current_player.uuid = playerData.uuid;
+                current_player.ip_addr = real_online_p.address;
+                current_player.uuid = real_online_p.uuid;
             }
         });
     }
