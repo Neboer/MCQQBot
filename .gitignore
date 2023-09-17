@@ -4,4 +4,5 @@ node_modules
 **.js.map
 temp
 config/*.yaml
+!config/strings.yaml
 !config/*example.yaml
