@@ -6,7 +6,7 @@ const login_timeout_sec = 10 // 玩家有10秒的时间登录
 // 实现了防抖的逻辑。
 // 玩家x秒内连接和断开的行为都防抖。
 // 如果玩家断开连接后立即连接，机器人不会报告玩家断开连接。
-export default class PlayerLoginManager {
+export default class PlayerSessionManager {
     public players: ShimmeringPlayer[] = []
     private bot: Bot
 
@@ -68,21 +68,24 @@ export default class PlayerLoginManager {
     // 注意登出防抖和登陆防抖在刷新策略上的区别。
     // 如果正在登出的玩家正在尝试登录（状态为connecting）则忽略。
     public player_exit(player_name: string) {
-        // TODO: 实现我！
         const player = this.get_player_by_name(player_name)
         if (!player) {
             // 玩家不在存储区，说明玩家首次退出。
-            const disconnecting_player =  new ShimmeringPlayer(player_name, PlayerOnlineState.disconnecting)
+            const disconnecting_player = new ShimmeringPlayer(player_name, PlayerOnlineState.disconnecting)
             disconnecting_player.timer = setTimeout(() => {
                 // 玩家在规定时间内没有切换状态到重新连接，说明玩家彻底断开。
                 const maybe_player = this.get_player_by_name(player_name)
                 if (maybe_player && maybe_player.state == PlayerOnlineState.disconnecting) {
-                    // 玩家状态没有任何改变，说明在断开连接期间，玩家没有任何重连行为。
-                    // 为什么这么说？一旦玩家重连，玩家会被登录逻辑限制。
+                    // 玩家状态没有任何改变，说明在断开连接期间，玩家没有任何重连行为，宣判死刑吧。
+                    // 为什么这么说？一旦玩家重连，玩家会被登录逻辑限制，如果玩家不重连，则会被这个逻辑限制。
+                    this.bot.emit_event('player_exit', player_name)
+                    this.remove_player_by_name(player_name)
                 }
-            }, login_timeout_sec*1000)
-            this.players.push()
-
+            }, login_timeout_sec * 1000)
+            this.players.push(disconnecting_player)
         }
+        // 不用考虑任何剩余情况。
+        // 如果玩家的状态是connecting，则在此期间发生的所有disconnect事件都可以忽略
+        // 如果玩家的状态是disconnecting，那继续以第一个表示玩家断开连接的包为准，不需要刷新了。
     }
 }
