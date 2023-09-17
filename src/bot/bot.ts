@@ -28,6 +28,7 @@ export default class Bot {
     // 每当CQHTTP连接出现问题时，执行此函数。
     // 一般情况下，重启CQHTTP或对应的签名服务便可解决。
     public CQHTTP_error_action: () => void
+    private event_table: Map<string, (...args: any[]) => any>
 
     public async send_qqgroup_message(qq_group_id: number, message_text: string, plain_text = true) {
         try {
@@ -69,6 +70,7 @@ export default class Bot {
         this.mc_api = new MCServerTapAPI(this.bot_config.get_servertap_api_url(), this.bot_config.servertap_key)
         this.qq_listeners = []
         this.mc_listeners = []
+        this.event_table = new Map<string, (...args: any[]) => any>
         this.CQHTTP_error_action = () => {
         }
         logger.info(`bot init`)
@@ -102,6 +104,11 @@ export default class Bot {
         }
     }
 
+    public emit_event(event_name: string, ...args: any[]) {
+        const func = this.event_table.get(event_name)
+        if (func) func(...args)
+    }
+
     // below is the listener binder of the bot
     // 使用方法：通过on_qq_group_chat/on_qq_group_command向机器人身上挂方法，实现监听。
     public on_qq_group_chat(qq_chat_cb: QQ_MSG_CB) {
@@ -127,5 +134,9 @@ export default class Bot {
     // 使用方法：通过on_mc_log向机器人身上挂MC监听方法，方法接受一个正则表达式和回调，如果正则匹配则会传到回调函数的参数中。
     public on_mc_log(match_pattern: RegExp, mc_log_cb: MC_MSG_CB) {
         this.mc_listeners.push(new MCListener(match_pattern, mc_log_cb))
+    }
+
+    public on_event(event_name: string, event_handler: (...args: any[]) => any) {
+        this.event_table.set(event_name, event_handler)
     }
 }

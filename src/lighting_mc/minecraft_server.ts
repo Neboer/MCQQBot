@@ -1,58 +1,61 @@
-import {ServerPlayer, PlayerOnlineState} from "./serverPlayer";
+import {PlayerOnlineState, WaitingForLoginPlayer} from "./serverPlayer";
 import OnlinePlayer from "../bot/schema/mcsvtap_api/OnlinePlayer";
 import logger from "../bot/logging";
+import Bot from "../bot/bot";
 
-export default class MCServer {
-    public players: ServerPlayer[] = []
+const login_timeout_sec = 10 // 玩家有10秒的时间登录
+
+// 实现了防抖的逻辑。
+// 防抖是怎么实现的？
+export default class PlayerLoginManager {
+    public players: WaitingForLoginPlayer[] = []
+    private bot: Bot
 
     public get_player_by_name(name: string) {
         return this.players.find(v => v.name == name)
     }
 
-    public player_login(name: string): ServerPlayer {
-        const player_found = this.get_player_by_name(name)
-        if (player_found) {
-            return player_found
-        } else {
-            const new_player = new ServerPlayer(name)
+    public remove_player_by_name(name: string) {
+        this.players.forEach((value, index) => {
+            if (value.name == name) {
+                this.players.splice(index, 1)
+                return
+            }
+        })
+    }
+
+    // 刷新控制玩家登录超时的计时器
+    private refresh_player_login_timeout_timer(player: WaitingForLoginPlayer) {
+        clearTimeout(player.login_timer)
+        player.login_timer = setTimeout(() => {
+            this.bot.emit_event('player_login_failed', player.name)
+            this.remove_player_by_name(player.name)
+        }, login_timeout_sec * 1000)
+    }
+
+
+    // 玩家尝试连接服务器。
+    public player_connect(player_name: string) {
+        const player = this.get_player_by_name(player_name)
+        if (!player) {
+            // 玩家不在存储区，说明玩家首次尝试连接服务器。
+            const new_player = new WaitingForLoginPlayer(player_name)
+            this.refresh_player_login_timeout_timer(new_player)
             this.players.push(new_player)
-            return new_player
+            this.bot.emit_event('player_login_connected', player_name)
+        } else {
+            this.refresh_player_login_timeout_timer(player)
+            this.bot.emit_event('player_login_continued', player_name)
         }
     }
 
-    public player_logout(name: string): boolean {
-        const player_index = this.players.findIndex(v => v.name == name)
-        if (player_index > -1) {
-            this.players.splice(player_index, 1)
-            return true
-        } else return false
-    }
-
-    // 根据serverTap GET /v1/players 返回的内容更新自己，是对监控API的一种校准。
-    public updatePlayersListFromServerTap(svtap_response_data: OnlinePlayer[]): void {
-        // 更新服务器的在线玩家列表，让其与svtap返回的结果一致。
-        const player_index_to_delete: number[] = []
-        this.players.forEach((server_p, index) => {
-            if (!svtap_response_data.find(online_p => online_p.displayName == server_p.name)) {
-                // 如果请求的玩家列表里没有玩家，说明列表中多了个玩家。
-                player_index_to_delete.push(index)
-                logger.warn(`extra player in server player list ${server_p.name}`)
-            }
-        })
-        // 统一删除多余的玩家。
-        player_index_to_delete.forEach(player_index_to_delete => {
-            this.players.splice(player_index_to_delete, 1)
-        })
-
-        svtap_response_data.forEach((real_online_p) => {
-            if (!this.get_player_by_name(real_online_p.displayName)) {
-                // 我们的玩家列表缺少玩家，需要添加一个新玩家，赶紧登录一下。
-                logger.warn(`missing player in server player list ${real_online_p.displayName}`)
-                const current_player = this.player_login(real_online_p.displayName)
-                current_player.state = PlayerOnlineState.login;
-                current_player.ip_addr = real_online_p.address;
-                current_player.uuid = real_online_p.uuid;
-            }
-        });
+    // 玩家成功登录！
+    public player_login(player_name: string) {
+        this.bot.emit_event('player_login_success', player_name)
+        const player = this.get_player_by_name(player_name)
+        if (player) {
+            clearTimeout(player.login_timer)
+            this.remove_player_by_name(player_name)
+        }
     }
 }

@@ -1,17 +1,19 @@
+import Bot from "../bot/bot";
 
 export enum PlayerOnlineState {
     connecting,
-    login
+    disconnected
 }
 
-export class ServerPlayer {
-    name: string
-    state?: PlayerOnlineState
-    ip_addr?: string
-    uuid?: string
-    password?: string
-    connect_time?: number // 首次连接时间。同名玩家在首次连接服务器后有30秒的时间正式登录服务器，在此期间发生的一切消息都被忽略。
 
+export type PLAYER_LOGIN_CB = (player: WaitingForLoginPlayer) => any
+
+export class WaitingForLoginPlayer {
+    name: string
+    state: PlayerOnlineState
+    login_timer: NodeJS.Timeout
+
+    // 玩家从来没有连接过服务器。如果session manager发现自己没有保存这个玩家的连接数据，可以直接创建。
     constructor(name: string) {
         this.name = name
         this.state = PlayerOnlineState.connecting
