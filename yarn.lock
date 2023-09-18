@@ -94,6 +94,11 @@ end-of-stream@^1.1.0:
   dependencies:
     once "^1.4.0"
 
+eta@^3.1.1:
+  version "3.1.1"
+  resolved "https://registry.npmmirror.com/eta/-/eta-3.1.1.tgz#f96574befd26cff585081954bec24b1ed7ec4853"
+  integrity sha512-GVKq8BhYjvGiwKAnvPOnTwAHach3uHglvW0nG9gjEmo8ZIe8HR1aCLdQ97jlxXPcCWhB6E3rDWOk2fahFKG5Cw==
+
 event-target-shim@^5.0.0:
   version "5.0.1"
   resolved "https://registry.npmmirror.com/event-target-shim/-/event-target-shim-5.0.1.tgz#5d4d3ebdf9583d63a5333ce2deb7480ab2b05789"
