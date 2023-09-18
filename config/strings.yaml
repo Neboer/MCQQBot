@@ -1,0 +1,15 @@
+old_player_connected_to_server_broadcast:
+  - 玩家<%= it.name %>连接服务器
+  - 小伙伴<%= it.name %>来啦！
+  - 小伙伴<%= it.name %>抵达了灵动星球，正在着陆……
+
+old_player_connected_to_server_greeting:
+  - 你好，欢迎来到灵动mc！
+  - 开拓者，欢迎回家！
+  - 灵动MC欢迎你的归来。
+
+new_player_connected_to_server_broadcast:
+  - 新朋友<%= it.name %>在连接服务器！
+  - 灵动星球迎来了新成员<%= it.name %>！正在着陆中
+
+

@@ -1,11 +1,9 @@
-import Bot from "../bot/bot";
-
 export enum PlayerOnlineState {
     connecting,
     disconnecting
 }
 
-// ShimmeringPlayer，闪烁的玩家，意味着连接防抖。
+// ShimmeringPlayer，闪烁的玩家，只是用来做连接防抖用的。这个玩家不保存真正的连接信息。
 export class ShimmeringPlayer {
     name: string
     state: PlayerOnlineState
@@ -17,3 +15,4 @@ export class ShimmeringPlayer {
         this.state = state
     }
 }
+

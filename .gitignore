@@ -6,3 +6,4 @@ temp
 config/*.yaml
 !config/strings.yaml
 !config/*example.yaml
+yarn-error.log
