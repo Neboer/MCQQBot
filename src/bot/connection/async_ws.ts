@@ -15,13 +15,15 @@ export default class AsyncWebSocketConnection extends WebSocket {
             this.msg_buffer.enqueue(msg.toString())
         })
 
+        // 这个Promise与WebSocket对象共存亡。如果连接有任何断开的迹象，这个Promise会结束。
+        // 这个Promise在结束的时候不会有任何返回值。
         this.wait_disconnect = new Promise(resolve => {
             if (this.readyState == CLOSED || this.readyState == CLOSING) {
                 resolve()
                 logger.info("connection closed!")
             } else {
-                this.once("error", resolve)
-                this.once("close", resolve)
+                this.once("error", () => resolve())
+                this.once("close", () => resolve())
             }
         })
     }
