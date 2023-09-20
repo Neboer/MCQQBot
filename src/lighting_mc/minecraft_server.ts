@@ -3,9 +3,11 @@ import Bot from "../bot/bot";
 
 const login_timeout_sec = 10 // 玩家有10秒的时间登录
 
-// 实现了防抖的逻辑。
+// w实现了防抖的逻辑。
 // 玩家x秒内连接和断开的行为都防抖。
 // 如果玩家断开连接后立即连接，机器人不会报告玩家断开连接。
+// PlayerSessionManager是玩家登录状态的判断器。它可以根据日志中提供的信息，以极高的鲁棒性表达玩家登录进行到哪个阶段了。
+// 通过PlayerSessionManager的过滤，玩家的登录过程会变得更加清晰，对玩家登录状态的判断会更加准确。
 export default class PlayerSessionManager {
     public players: ShimmeringPlayer[] = []
     private bot: Bot
@@ -41,7 +43,7 @@ export default class PlayerSessionManager {
             const new_player = new ShimmeringPlayer(player_name)
             this.refresh_player_login_timeout_timer(new_player)
             this.players.push(new_player)
-            this.bot.emit_event('player_login_connected', player_name)
+            this.bot.emit_event('player_connected', player_name)
         } else if (player.state == PlayerOnlineState.connecting) {
             // 玩家已经在连接服务器的过程中。
             this.refresh_player_login_timeout_timer(player)
@@ -76,8 +78,8 @@ export default class PlayerSessionManager {
                 // 玩家在规定时间内没有切换状态到重新连接，说明玩家彻底断开。
                 const maybe_player = this.get_player_by_name(player_name)
                 if (maybe_player && maybe_player.state == PlayerOnlineState.disconnecting) {
-                    // 玩家状态没有任何改变，说明在断开连接期间，玩家没有任何重连行为，宣判死刑吧。
-                    // 为什么这么说？一旦玩家重连，玩家会被登录逻辑限制，如果玩家不重连，则会被这个逻辑限制。
+                    // 玩家状态没有任何改变，说明在断开连接期间，玩家没有任何重连行为，宣判死刑——玩家已经断线。
+                    // 为什么这么说？一旦玩家重连，玩家会被登录逻辑限制，如果玩家不重连，则会被退出逻辑限制。
                     this.bot.emit_event('player_exit', player_name)
                     this.remove_player_by_name(player_name)
                 }
@@ -86,6 +88,6 @@ export default class PlayerSessionManager {
         }
         // 不用考虑任何剩余情况。
         // 如果玩家的状态是connecting，则在此期间发生的所有disconnect事件都可以忽略
-        // 如果玩家的状态是disconnecting，那继续以第一个表示玩家断开连接的包为准，不需要刷新了。
+        // 如果玩家的状态是disconnecting，那继续以第一个表示玩家断开连接的包为准开始计时，不需要刷新计时器。
     }
 }
