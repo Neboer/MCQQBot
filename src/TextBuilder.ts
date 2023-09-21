@@ -10,7 +10,7 @@ export default class TextBuilder {
     text_dict: { [key: string]: string[] }
 
     constructor() {
-        const translate_file_content = readFileSync('../../config/string.yaml', {encoding: 'utf-8'})
+        const translate_file_content = readFileSync('config/strings.yaml', {encoding: 'utf-8'})
         this.text_dict = flattenObj(parse(translate_file_content))
     }
 
@@ -19,7 +19,9 @@ export default class TextBuilder {
         const all_reply_texts = this.text_dict[translate_index_str]
         if (all_reply_texts) {
             const reply_text = all_reply_texts[Math.floor(Math.random() * all_reply_texts.length)];
-            return this.engine.renderString(reply_text, render_obj)
+            const rendered_text = this.engine.renderString(reply_text, render_obj)
+            // trim whitespace
+            return rendered_text.trim()
         } else {
             throw new Error('no such index')
         }

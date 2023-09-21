@@ -1,8 +1,8 @@
 // 用来转发消息到QQ，转发消息到MC的。
-import Bot from "./bot/bot";
-import TextBuilder from "./TextBuilder";
-import {MQQGroupMsg} from "./bot/mqq_msg";
-import logger from "./bot/logging";
+import Bot from "../bot/bot";
+import TextBuilder from "../TextBuilder";
+import {MQQGroupMsg} from "../bot/mqq_msg";
+import logger from "../bot/logging";
 
 export default function bind_message_deliverer(bot: Bot, text_builder: TextBuilder) {
     bot.on_qq_group_chat((bot_instance: Bot, m_qq_msg: MQQGroupMsg) => {
