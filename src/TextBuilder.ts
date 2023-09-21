@@ -14,7 +14,7 @@ export default class TextBuilder {
         this.text_dict = flattenObj(parse(translate_file_content))
     }
 
-    build_random_translate_str(translate_index_str: string, render_obj: any) {
+    build_random_translate_str(translate_index_str: string, render_obj: any = {}) {
         // 随机获得一个翻译字符喵！
         const all_reply_texts = this.text_dict[translate_index_str]
         if (all_reply_texts) {
