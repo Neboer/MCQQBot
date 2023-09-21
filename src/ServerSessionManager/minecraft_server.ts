@@ -3,7 +3,7 @@ import Bot from "../bot/bot";
 
 const login_timeout_sec = 10 // 玩家有10秒的时间登录
 
-// w实现了防抖的逻辑。
+// 实现了防抖的逻辑。
 // 玩家x秒内连接和断开的行为都防抖。
 // 如果玩家断开连接后立即连接，机器人不会报告玩家断开连接。
 // PlayerSessionManager是玩家登录状态的判断器。它可以根据日志中提供的信息，以极高的鲁棒性表达玩家登录进行到哪个阶段了。
@@ -11,6 +11,10 @@ const login_timeout_sec = 10 // 玩家有10秒的时间登录
 export default class PlayerSessionManager {
     public players: ShimmeringPlayer[] = []
     private bot: Bot
+
+    constructor(bot: Bot) {
+        this.bot = bot
+    }
 
     public get_player_by_name(name: string) {
         return this.players.find(v => v.name == name)
@@ -29,8 +33,12 @@ export default class PlayerSessionManager {
     private refresh_player_login_timeout_timer(player: ShimmeringPlayer) {
         clearTimeout(player.timer)
         player.timer = setTimeout(() => {
-            this.bot.emit_event('player_login_failed', player.name)
-            this.remove_player_by_name(player.name)
+            // 玩家登录后一段时间内没有操作，在机器人判断里超时。
+            // 如果这个timer被执行，那么就说明玩家没有任何在尝试登录的操作，并且一定还在连接服务器。
+            // 如果玩家已退出，player_exit会把此回调清空，不会执行。
+            this.bot.emit_event('player_login_continued', player.name)
+            this.refresh_player_login_timeout_timer(player)
+            // this.remove_player_by_name(player.name)
         }, login_timeout_sec * 1000)
     }
 
@@ -85,6 +93,10 @@ export default class PlayerSessionManager {
                 }
             }, login_timeout_sec * 1000)
             this.players.push(disconnecting_player)
+        } else if (player.state == PlayerOnlineState.connecting) {
+            this.bot.emit_event('player_exit', player_name)
+            clearTimeout(player.timer)
+            this.remove_player_by_name(player_name)
         }
         // 不用考虑任何剩余情况。
         // 如果玩家的状态是connecting，则在此期间发生的所有disconnect事件都可以忽略

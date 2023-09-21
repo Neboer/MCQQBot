@@ -3,9 +3,9 @@ import {load_config} from "./bot/config";
 import logger from "./bot/logging";
 import get_bot_version from "./version";
 import TextBuilder from "./TextBuilder";
-import bind_message_deliverer from "./message_deliver";
-import bind_state_reporter from "./server_state_reporter";
-import bind_session_reporter from "./session_reporter";
+import bind_message_deliverer from "./bot_function/message_deliver";
+import bind_state_reporter from "./bot_function/server_state_reporter";
+import bind_session_reporter from "./bot_function/session_reporter";
 
 
 const bot_config = load_config()

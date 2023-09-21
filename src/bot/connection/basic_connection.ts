@@ -69,9 +69,10 @@ export default class BasicConnection extends AsyncEventEmitter {
                 await this.wait_for_reconnection()
                 return await this.ws_connection.read_json()
             } catch (e) {
-                if (e.message == "connected closed")
-                    logger.error(`must_read_json get error: ${e}`)
-                else throw e;
+                logger.error(`must_read_json failed: ${e}`)
+                // if (e.message == "connected closed")
+                //     logger.error(`must_read_json failed due to a closed connection`)
+                // else throw e;
             }
         }
     }
