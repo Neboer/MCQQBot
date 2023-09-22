@@ -1,8 +1,4 @@
-import {parse, stringify} from 'yaml'
-import {readFileSync} from 'fs'
-import logger from "./logging";
-
-export default class Config {
+export default class BotConfig {
     servertap_host: string
     servertap_port: number
     servertap_key: string
@@ -15,7 +11,7 @@ export default class Config {
 
     reconnect_interval: number
 
-    constructor(config_obj: Partial<Config>) {
+    constructor(config_obj: Partial<BotConfig>) {
         Object.assign(this, config_obj)
     }
 
@@ -28,11 +24,3 @@ export default class Config {
     }
 }
 
-export function load_config(): Config {
-    try {
-        const file = readFileSync('./config/config.yaml', {encoding: "utf8"})
-        return new Config(parse(file))
-    } catch (e) {
-        logger.fatal(e, "unable to find config file, error")
-    }
-}

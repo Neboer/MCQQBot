@@ -36,14 +36,14 @@
   转发QQ消息到MC:
     - "[来自群聊] <<%= it.name %>> <%= it.message %>"
   转发到QQ被拦截:
-    - "您的消息未通过审核，被拦截"
-    - "消息可能违规，未同步到QQ"
+    - "您的消息未通过审核，被拦截。拦截原因：<%= it.reason %>"
+    - "消息可能违规，未同步到QQ。原因：<%= it.reason %>"
 状态:
   在线玩家:
     - |
       服务器人数: <%= users.length %> 人：
       <% users.forEach(function(user){ %>
-      <%= user.name %>
+      <%= user.name + '\n'  %>
       <% }) %>
 管理:
   帮助:

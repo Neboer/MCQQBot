@@ -1,11 +1,18 @@
-servertap_host: 192.168.1.1
-servertap_port: 4567
-servertap_key: examplekey
+bot:
+  servertap_host: 192.168.1.1
+  servertap_port: 4567
+  servertap_key: examplekey
 
-cqhttp_ws_uri: ws://127.0.0.1:5701
-qq_bot_id: 56789725
-qq_group_id: 1145141919
-qq_admin_ids:
-  - 2416546549
+  cqhttp_ws_uri: ws://127.0.0.1:5701
+  qq_bot_id: 56789725
+  qq_group_id: 1145141919
+  qq_admin_ids:
+    - 2416546549
 
-reconnect_interval: 1000
+  reconnect_interval: 1000
+
+baidu_api:
+  enable: true
+  client_id: secret_idxxx
+  client_secret: secret_xxxx
+  access_token: token # 也可以为空

@@ -1,15 +1,15 @@
 import Bot from "./bot/bot";
-import {load_config} from "./bot/config";
 import logger from "./bot/logging";
 import get_bot_version from "./version";
 import TextBuilder from "./TextBuilder";
 import bind_message_deliverer from "./bot_function/message_deliver";
 import bind_state_reporter from "./bot_function/server_state_reporter";
 import bind_session_reporter from "./bot_function/session_reporter";
+import {load_config} from "./load_config";
+import BotConfig from "./bot/BotConfig";
 
-
-const bot_config = load_config()
-const KyaruBot = new Bot(bot_config)
+const global_config = load_config()
+const KyaruBot = new Bot(new BotConfig(global_config.bot))
 const text_builder = new TextBuilder()
 
 const ctx: any = {}

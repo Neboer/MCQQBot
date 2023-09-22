@@ -1,5 +1,5 @@
 import {QQGroupMsg} from "./schema/cqhttp_msg";
-import Config from "./config";
+import BotConfig from "./BotConfig";
 
 
 export class MQQGroupMsg {
@@ -27,7 +27,7 @@ export class MQQGroupMsg {
         return input_cqmsg_string.replace(/&amp;|&#91;|&#93;|&#44;/g, match => replacements_table[match]);
     }
 
-    constructor(ori_group_msg: QQGroupMsg, bot_config: Config) {
+    constructor(ori_group_msg: QQGroupMsg, bot_config: BotConfig) {
         // 将所有CQ码都简单转义。
         let no_cq_msg = ori_group_msg.raw_message.replace(/\[CQ:([a-z]+),.*?]/g, '[$1]');
         this.is_plain_text = no_cq_msg == ori_group_msg.raw_message
