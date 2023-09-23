@@ -1,7 +1,22 @@
+export enum Conclusion {
+    Compliant = "合规",
+    NonCompliant = "不合规",
+    Suspected = "疑似",
+    AuditFailure = "审核失败",
+}
+
+export enum ConclusionType {
+    Compliant = 1,
+    NonCompliant = 2,
+    Suspected = 3,
+    AuditFailure = 4,
+}
+
+
 export interface TextCheckResult {
     log_id: number
-    conclusion: string
-    conclusionType: number
+    conclusion: Conclusion
+    conclusionType: ConclusionType
     data: TextCensorReport[]
 }
 

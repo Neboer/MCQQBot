@@ -24,5 +24,5 @@ export interface BaiduAPIConfig {
     client_id: string
     client_secret: string
     enable: string
-    access_token: string
+    access_token?: string
 }

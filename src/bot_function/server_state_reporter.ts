@@ -8,7 +8,8 @@ export default function bind_state_reporter(bot: Bot, text_builder: TextBuilder)
         logger.info(`mc: query online players`)
         bot_instance.get_mc_online_players().then(players => {
             bot_instance.send_default_qqgroup_message(
-                text_builder.build_random_translate_str('状态.在线玩家', players.map(p => {name: p.displayName})), true)
+                text_builder.build_random_translate_str('状态.在线玩家',
+                    players.map(p => p.displayName)), true)
         })
     })
 }
