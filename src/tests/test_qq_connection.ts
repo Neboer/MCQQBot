@@ -1,5 +1,5 @@
-import CQHTTPConnection from "../connection/cqhttp_connection";
-import logger from "../logging";
+import CQHTTPConnection from "../bot/connection/cqhttp_connection";
+import logger from "../bot/logging";
 
 const qq_c = new CQHTTPConnection("ws://10.0.0.4:5701")
 

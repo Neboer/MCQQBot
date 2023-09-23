@@ -1,4 +1,4 @@
-import {flattenObj, NestedObject} from "../lib/FlattenObject";
+import {flattenObj, NestedObject} from "../bot/lib/FlattenObject";
 
 const ob: NestedObject = {
     Company: "GeeksforGeeks",

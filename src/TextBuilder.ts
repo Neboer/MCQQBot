@@ -6,7 +6,9 @@ import {flattenObj} from "./bot/lib/FlattenObject";
 
 // 组装字符串！
 export default class TextBuilder {
-    engine: Eta = new Eta()
+    engine: Eta = new Eta({
+        autoEscape: false
+    })
     text_dict: { [key: string]: string[] }
 
     constructor() {

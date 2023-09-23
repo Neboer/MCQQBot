@@ -1,5 +1,5 @@
-import AsyncBlockingQueue from "../queue";
-import {sleep} from "../utils";
+import AsyncBlockingQueue from "../bot/queue";
+import {sleep} from "../bot/utils";
 
 const q = new AsyncBlockingQueue<number>()
 

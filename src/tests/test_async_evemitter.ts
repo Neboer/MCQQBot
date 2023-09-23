@@ -1,5 +1,5 @@
-import AsyncEventEmitter from "../lib/AsyncEventEmitter";
-import {sleep} from "../utils";
+import AsyncEventEmitter from "../bot/lib/AsyncEventEmitter";
+import {sleep} from "../bot/utils";
 import CancelablePromise from "cancelable-promise";
 
 const s = new AsyncEventEmitter()

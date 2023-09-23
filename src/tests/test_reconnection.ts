@@ -1,6 +1,6 @@
 // test AsyncWebSocketConnection
-import AsyncWebSocketConnection from "../connection/async_ws"
-import BasicConnection from "../connection/basic_connection";
+import AsyncWebSocketConnection from "../bot/connection/async_ws"
+import BasicConnection from "../bot/connection/basic_connection";
 
 
 let a: BasicConnection = new BasicConnection("ws://localhost:4155")

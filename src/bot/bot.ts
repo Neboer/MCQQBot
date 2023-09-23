@@ -1,5 +1,5 @@
 import logger from "./logging";
-import Config from './config'
+import BotConfig from './BotConfig'
 import {is_qqgroup_msg, QQGroupMsg} from './schema/cqhttp_msg';
 import {MQQGroupMsgFilter, QQ_MSG_CB} from "./qq_listener";
 import {is_mc_msg} from "./schema/mc_servertap_msg";
@@ -20,7 +20,7 @@ export default class Bot {
     private qq_connection: CQHTTPConnection
     private mc_connection: MCServerTapConnection
     private mc_api: MCServerTapAPI
-    public readonly bot_config: Config
+    public readonly bot_config: BotConfig
 
     private qq_listeners: QQListener[]
     private mc_listeners: MCListener[]
@@ -63,7 +63,7 @@ export default class Bot {
         }
     }
 
-    constructor(bot_config: Config) {
+    constructor(bot_config: BotConfig) {
         this.bot_config = bot_config
         this.qq_connection = new CQHTTPConnection(this.bot_config.cqhttp_ws_uri)
         this.mc_connection = new MCServerTapConnection(this.bot_config.get_servertap_ws_url(), this.bot_config.servertap_key)
