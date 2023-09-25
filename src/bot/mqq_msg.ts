@@ -2,6 +2,7 @@ import {QQGroupMsg} from "./schema/cqhttp_msg";
 import BotConfig from "./BotConfig";
 
 
+// MQQ*Msg表达从QQ中收到的某类消息。
 export class MQQGroupMsg {
     message_text: string
     sender_id: number

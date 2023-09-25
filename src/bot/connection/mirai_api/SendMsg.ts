@@ -1,5 +1,5 @@
 // 发送消息的基本类型，注意，只能发送基本文字消息。
-import {QQMessage} from "./MessageChain";
+import {QQMessage} from "./MessageChain/MessageChain";
 
 export interface MiraiSendMsg {
     syncId: number

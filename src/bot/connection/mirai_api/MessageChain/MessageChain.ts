@@ -1,6 +1,4 @@
-export interface QQMessage {
-    type: string
-}
+import {QQMessage} from "./QQMessage/QQMessage";
 
 export interface PlainTextQQMessage extends QQMessage {
     type: 'Plain',
@@ -12,3 +10,6 @@ export interface SourceQQMessage extends QQMessage {
     id: number
     time: number
 }
+
+export type MessageChain = QQMessage[]
+export type RecvMessageChain = [SourceQQMessage, ...QQMessage[]];
