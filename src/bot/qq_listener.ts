@@ -1,7 +1,7 @@
 import {MQQGroupMsg} from "./mqq_msg";
 // 重构：这里循环依赖。
 import Bot from "./bot";
-import {QQGroupMsg} from "./schema/cqhttp_msg";
+import {GroupMessageData} from "./connection/mirai_api/RecvMsg/RecvData/Message/GroupMessageData";
 
 export type QQ_MSG_CB = (bot_instance: Bot, m_qq_msg: MQQGroupMsg) => void | Promise<void>
 
@@ -39,7 +39,7 @@ export default class QQListener {
         return true;
     }
 
-    public async exec_on(bot_instance: Bot, qq_group_msg: QQGroupMsg) {
+    public async exec_on_group(bot_instance: Bot, qq_group_msg: GroupMessageData) {
         const meta_qq_group_message = new MQQGroupMsg(qq_group_msg, bot_instance.bot_config)
         if (this.is_matching(meta_qq_group_message)) {
             return await this.action(bot_instance, meta_qq_group_message)

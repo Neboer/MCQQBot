@@ -1,7 +1,7 @@
-import CQHTTPConnection from "../bot/connection/cqhttp_connection";
 import logger from "../bot/logging";
+import MiraiConnection from "../bot/connection/mirai_connection";
 
-const qq_c = new CQHTTPConnection("ws://10.0.0.4:5701")
+const qq_c = new MiraiConnection("ws://10.0.0.4:5701")
 
 async function test_qq() {
     while (true) {

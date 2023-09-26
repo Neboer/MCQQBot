@@ -1,5 +1,6 @@
-import {QQGroupMsg} from "./schema/cqhttp_msg";
 import BotConfig from "./BotConfig";
+import {GroupMessageData} from "./connection/mirai_api/RecvMsg/RecvData/Message/GroupMessageData";
+import {is_plain_text_chain, message_chain_to_string} from "./connection/mirai_api/MessageChain/MessageChainString";
 
 
 // MQQ*Msg表达从QQ中收到的某类消息。
@@ -17,26 +18,14 @@ export class MQQGroupMsg {
     command_name?: string
     command_parameters?: string[]
 
-    private static unescape_cq_encoded_str(input_cqmsg_string: string): string {
-        const replacements_table = {
-            '&amp;': '&',
-            '&#91;': '[',
-            '&#93;': ']',
-            '&#44;': ','
-        };
-
-        return input_cqmsg_string.replace(/&amp;|&#91;|&#93;|&#44;/g, match => replacements_table[match]);
-    }
-
-    constructor(ori_group_msg: QQGroupMsg, bot_config: BotConfig) {
+    constructor(ori_group_msg: GroupMessageData, bot_config: BotConfig) {
         // 将所有CQ码都简单转义。
-        let no_cq_msg = ori_group_msg.raw_message.replace(/\[CQ:([a-z]+),.*?]/g, '[$1]');
-        this.is_plain_text = no_cq_msg == ori_group_msg.raw_message
+        this.is_plain_text = is_plain_text_chain(ori_group_msg.messageChain)
 
-        this.message_text = MQQGroupMsg.unescape_cq_encoded_str(no_cq_msg)
-        this.sender_name = ori_group_msg.sender.card
-        this.sender_id = ori_group_msg.sender.user_id
-        this.group_id = ori_group_msg.group_id
+        this.message_text = message_chain_to_string(ori_group_msg.messageChain)
+        this.sender_name = ori_group_msg.sender.memberName
+        this.sender_id = ori_group_msg.sender.id
+        this.group_id = ori_group_msg.sender.group.id
 
         this.admin_message = bot_config.qq_admin_ids.findIndex(i => this.sender_id == i) != -1
         this.sent_by_bot = bot_config.qq_bot_id == this.sender_id

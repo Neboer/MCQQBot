@@ -1,5 +1,5 @@
 import {MessageData} from "./MessageData";
-import {RecvMessageChain} from "../../MessageChain/MessageChain";
+import {RecvMessageChain} from "../../../MessageChain/MessageChain";
 import {FriendMessageSender} from "./MessageSender/FriendMessageSender";
 
 export interface FriendMessageData extends MessageData {

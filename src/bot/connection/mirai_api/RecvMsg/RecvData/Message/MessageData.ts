@@ -1,5 +1,5 @@
-import {RecvData} from "../RecvData";
-import {RecvMessageChain} from "../../MessageChain/MessageChain";
+import {RecvData} from "../../RecvData";
+import {RecvMessageChain} from "../../../MessageChain/MessageChain";
 import {MessageSender} from "./MessageSender/MessageSender";
 
 export interface MessageData extends RecvData {

@@ -1,6 +1,6 @@
 import {MessageData} from "./MessageData";
 import {GroupMessageSender} from "./MessageSender/GroupMessageSender";
-import {RecvMessageChain} from "../../MessageChain/MessageChain";
+import {RecvMessageChain} from "../../../MessageChain/MessageChain";
 
 export interface GroupMessageData extends MessageData {
     type: 'GroupMessage'

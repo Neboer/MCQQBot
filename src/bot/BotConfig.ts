@@ -2,8 +2,9 @@ export default class BotConfig {
     servertap_host: string
     servertap_port: number
     servertap_key: string
+    servertap_secure: boolean
 
-    cqhttp_ws_uri: string
+    mirai_ws_uri: string
 
     qq_bot_id: number
     qq_group_id: number
@@ -16,11 +17,11 @@ export default class BotConfig {
     }
 
     public get_servertap_ws_url() {
-        return `ws://${this.servertap_host}:${this.servertap_port}/v1/ws/console`
+        return `ws${this.servertap_secure?'s':''}://${this.servertap_host}:${this.servertap_port}/v1/ws/console`
     }
 
     public get_servertap_api_url() {
-        return `http://${this.servertap_host}:${this.servertap_port}`
+        return `http${this.servertap_secure?'s':''}://${this.servertap_host}:${this.servertap_port}`
     }
 }
 

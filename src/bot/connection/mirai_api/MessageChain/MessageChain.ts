@@ -13,3 +13,7 @@ export interface SourceQQMessage extends QQMessage {
 
 export type MessageChain = QQMessage[]
 export type RecvMessageChain = [SourceQQMessage, ...QQMessage[]];
+
+export function is_plain_text_qq_message(qq_msg: QQMessage):qq_msg is PlainTextQQMessage {
+    return qq_msg.type == 'Plain'
+}

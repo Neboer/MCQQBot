@@ -3,7 +3,8 @@ bot:
   servertap_port: 4567
   servertap_key: examplekey
 
-  cqhttp_ws_uri: ws://127.0.0.1:5701
+  mirai_ws_uri: ws://localhost:1234/message?verifyKey=xx&qq=xx
+
   qq_bot_id: 56789725
   qq_group_id: 1145141919
   qq_admin_ids:
