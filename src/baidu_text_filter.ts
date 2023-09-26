@@ -23,8 +23,13 @@ export default class BaiduTextFilter extends MsgFilter {
     }
 
     public async check_msg(input_message: string): Promise<MsgCheckResult> {
-        const api_reply = await this.baidu_text_censor_api.censor_text(input_message)
-        if (api_reply.conclusionType == ConclusionType.Compliant || api_reply.conclusionType == ConclusionType.AuditFailure) {
+        let api_reply: TextCheckResult = null
+        try {
+            api_reply = await this.baidu_text_censor_api.censor_text(input_message)
+        } catch (e) {
+            logger.error(`BaiduTextFilter Baidu API Error! ${e}`)
+        }
+        if (api_reply == null || api_reply.conclusionType == ConclusionType.Compliant || api_reply.conclusionType == ConclusionType.AuditFailure) {
             // 合规或审核失败的，放行。
             logger.info(`BaiduTextFilter check_msg allow ${input_message}`)
             return {
@@ -37,5 +42,6 @@ export default class BaiduTextFilter extends MsgFilter {
                 block_reason: this.build_report_str_from_check_result(api_reply)
             }
         }
+
     }
 }

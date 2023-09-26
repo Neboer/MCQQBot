@@ -1,7 +1,7 @@
 import {is_plain_text_qq_message, MessageChain, PlainTextQQMessage} from "./MessageChain";
 export function is_plain_text_chain(chain: MessageChain) {
     return chain.every(msg =>
-        msg.type in ['Source', 'Quote', 'At', 'AtAll', 'Plain']
+        ['Source', 'Quote', 'At', 'AtAll', 'Plain'].includes(msg.type)
     )
 }
 
