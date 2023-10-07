@@ -35,6 +35,11 @@ KyaruBot.on_qq_group_command("help", false, async (bot_instance, m_qq_msg) => {
     await bot_instance.send_default_qqgroup_message(`#mc 查询当前在线人数\n#version 查询机器人版本\n#help 查看此帮助信息`)
 })
 
+KyaruBot.on_qq_group_command("neboer", false, async (bot_instance, m_qq_msg) => {
+    logger.info(`help packet`)
+    await bot_instance.send_default_qqgroup_message(`管理.彩蛋.触发Neboer`)
+})
+
 KyaruBot.run()
 
 

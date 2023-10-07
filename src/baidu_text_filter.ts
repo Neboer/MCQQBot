@@ -14,12 +14,12 @@ export default class BaiduTextFilter extends MsgFilter {
     private build_report_str_from_check_result(check_result: TextCheckResult): string {
         // 只接受疑似或明确违规的消息。
         const severity = (check_result.conclusionType == ConclusionType.NonCompliant) ? '不合规' : '疑似违规'
-        const report_objects = check_result.data.map(text_censor_report => {
-            const hit_string = text_censor_report.hits.map(hit => hit.words.join('&')).join('，')
-            return `${text_censor_report.conclusion}: ${hit_string}`
-        }).join('、')
-        return `消息${severity}，${report_objects}`
-
+        // 没有弄清汇报消息的具体结构，没有办法很好的序列化，就不序列化了。
+        // const report_objects = check_result.data.map(text_censor_report => {
+        //     const hit_string = text_censor_report.hits.map(hit => hit.words.join('&')).join('，')
+        //     return `${text_censor_report.conclusion}: ${hit_string}`
+        // }).join('、')
+        return severity
     }
 
     public async check_msg(input_message: string): Promise<MsgCheckResult> {
