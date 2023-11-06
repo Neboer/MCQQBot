@@ -29,8 +29,8 @@ export default class BaiduTextFilter extends MsgFilter {
         } catch (e) {
             logger.error(`BaiduTextFilter Baidu API Error! ${e}`)
         }
-        if (api_reply == null || api_reply.conclusionType == ConclusionType.Compliant || api_reply.conclusionType == ConclusionType.AuditFailure) {
-            // 合规或审核失败的，放行。
+        if (api_reply != null && (api_reply.conclusionType == ConclusionType.Compliant || api_reply.conclusionType == ConclusionType.AuditFailure)) {
+            // 合规或审核失败的，放行。审核不通过的，拦截。审核失败的，因为请求失败等原因失败的，拦截，否则放行。
             logger.info(`BaiduTextFilter check_msg allow ${input_message}`)
             return {
                 is_blocked: false

@@ -25,6 +25,10 @@ export default class TextCensorAPI extends BaiduAPI {
                     // 在不允许刷新的情况下刷新token了！这是怎么回事？！
                     throw new Error(`censor_text refresh access_token too many times!`)
                 }
+            } else if (res_data.error_code == 111) {
+                logger.warn(`censor_text Access Token Expired: ${JSON.stringify(res_data)}, refreshing...`)
+                await this.refresh_access_token()
+                return await this.censor_text(input_text, false)
             } else {
                 logger.error(`censor_text failed with error: ${res_data.error_code}: ${res_data.error_msg}`)
                 throw new Error(`censor_text failed with unknown error`)
