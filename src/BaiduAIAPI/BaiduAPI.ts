@@ -19,21 +19,15 @@ export default class BaiduAPI {
 
     protected async refresh_access_token() {
         const requestOptions: RequestInit = {
-            method: 'POST',
+            method: 'GET',
             headers: {
-                'Content-Type': 'application/json',
                 'Accept': 'application/json'
-            },
-            body: JSON.stringify({
-                client_id: this.client_id,
-                client_secret: this.client_secret,
-                grant_type: 'client_credentials'
-            })
+            }
         };
 
-        const response = await fetch(`${api_host}${token_endpoint}`, requestOptions);
+        const response = await fetch(`${api_host}${token_endpoint}?grant_type=client_credentials&client_id=${this.client_id}&client_secret=${this.client_secret}`, requestOptions);
         if (!response.ok) {
-            logger.error(`refresh_token failed: ${response.body}`)
+            logger.error(`refresh_token failed: ${JSON.stringify(await response.json())}`)
             throw new Error('Failed to fetch token');
         } else {
             const data = await response.json();
