@@ -43,14 +43,14 @@ export default class MCServerTapAPI {
     public async broadcast_message(message_content: string) {
         const res = await this.post_form_api("/v1/chat/broadcast", {"message": message_content})
         if (res.status != 200) {
-            logger.error(`broadcast failed! code ${res.status} ${res.statusText} error: ${await res.json()}`)
+            logger.error(`broadcast failed! code ${res.status} ${res.statusText} error: ${JSON.stringify(await res.json())}`)
         }
     }
 
     public async get_player_list(): Promise<OnlinePlayer[]> {
         const res = await this.get_json_api("/v1/players")
         if (res.status != 200) {
-            logger.error(`get player list failed! code ${res.status} ${res.statusText} error: ${await res.json()}`)
+            logger.error(`get player list failed! code ${res.status} ${res.statusText} error: ${JSON.stringify(await res.json())}`)
         }
         return (await res.json() as OnlinePlayer[])
     }
