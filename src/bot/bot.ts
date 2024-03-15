@@ -1,21 +1,19 @@
 import logger from "./logging";
 import BotConfig from './BotConfig'
-import {MQQGroupMsgFilter, QQ_MSG_CB} from "./qq_listener";
-import {is_mc_msg} from "./schema/mc_servertap_msg";
+import { MQQGroupMsgFilter, QQ_MSG_CB } from "./qq_listener";
+import { is_mc_msg } from "./schema/mc_servertap_msg";
 
 import MCServerTapConnection from "./connection/mcsvtap_connection";
 import MCServerTapAPI from "./connection/mcsvtap_api";
 
 import QQListener from "./qq_listener";
-import MCListener, {MC_MSG_CB} from "./mc_listener";
+import MCListener, { MC_MSG_CB } from "./mc_listener";
 import OnlinePlayer from "./schema/mcsvtap_api/OnlinePlayer";
-import CancelablePromise, {cancelable} from "cancelable-promise";
-import {sleep} from "./utils";
-import logging from "./logging";
+import CancelablePromise, { cancelable } from "cancelable-promise";
 import MiraiConnection from "./connection/mirai_connection";
-import {RecvData} from "./connection/mirai_api/RecvMsg/RecvData";
-import {is_group_message_data} from "./connection/mirai_api/RecvMsg/RecvData/Message/GroupMessageData";
-import {is_message_data} from "./connection/mirai_api/RecvMsg/RecvData/Message/MessageData";
+import { RecvData } from "./connection/mirai_api/RecvMsg/RecvData";
+import { is_group_message_data } from "./connection/mirai_api/RecvMsg/RecvData/Message/GroupMessageData";
+import { is_message_data } from "./connection/mirai_api/RecvMsg/RecvData/Message/MessageData";
 
 
 export default class Bot {
@@ -27,21 +25,10 @@ export default class Bot {
     private qq_listeners: QQListener[]
     private mc_listeners: MCListener[]
 
-    // 每当QQ连接出现问题时，执行此函数。
-    // 一般情况下，重启Mirai或对应的签名服务便可解决。
-    public Mirai_error_action: () => void
     private event_table: Map<string, (...args: any[]) => any>
 
     public async send_qqgroup_message(qq_group_id: number, message_text: string, plain_text = true) {
-        try {
-            return await this.qq_connection.send_qq_group_msg(qq_group_id, message_text)
-        } catch (e) {
-            if (e.message == "Mirai REPLY TIMEOUT") {
-                logger.error(`Mirai reply timeout, qq instance may be corrupted. executing Mirai_error_action`)
-                this.Mirai_error_action()
-            }
-        }
-
+        return await this.qq_connection.send_qq_group_msg(qq_group_id, message_text)
     }
 
     public async send_default_qqgroup_message(message_text: string, plain_text = true) {
@@ -57,11 +44,15 @@ export default class Bot {
     }
 
     public async get_mc_online_players(): Promise<OnlinePlayer[]> {
+        return await this.mc_api.get_player_list()
+    }
+
+    // 一般用来广播错误消息。让mc和qq的用户都可以收到。
+    public async broadcast_message_to_mc_qq_no_error(message_content) {
         try {
-            return await this.mc_api.get_player_list()
+            return await Promise.all([this.broadcast_mc_message(message_content), this.send_default_qqgroup_message(message_content)])
         } catch (e) {
-            logger.error(`get_mc_online_players error: ${e}`)
-            return []
+            logger.error(e, "broadcast_message_to_mc_qq_no_error failed.")
         }
     }
 
@@ -73,8 +64,6 @@ export default class Bot {
         this.qq_listeners = []
         this.mc_listeners = []
         this.event_table = new Map<string, (...args: any[]) => any>
-        this.Mirai_error_action = () => {
-        }
         logger.info(`bot init`)
     }
 
@@ -89,7 +78,13 @@ export default class Bot {
                 logger.info(`< mc: ${JSON.stringify(incoming_packet)}`)
                 wait_mc_message = this.mc_connection.read_mc_msg()
                 for (const current_mc_listener of this.mc_listeners) {
-                    await current_mc_listener.exec_on(this, incoming_packet)
+                    // 在这里解决错误处理的问题！下面的qq消息处理逻辑还有一处相似的地方。
+                    try {
+                        await current_mc_listener.exec_on(this, incoming_packet)
+                    } catch (e) {
+                        // 抓住错误后，就要广播。
+                        await this.broadcast_message_to_mc_qq_no_error(e.message)
+                    }
                 }
             } else {
                 // 不是mc消息，一定是qq消息！

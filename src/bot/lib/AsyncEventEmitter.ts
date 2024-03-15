@@ -1,6 +1,5 @@
 import EventEmitter from 'events';
 import CancelablePromise from 'cancelable-promise';
-import {Counter} from "../utils";
 
 interface listener_record {
     reject_func: (reason?: any) => void

@@ -18,6 +18,7 @@ export default class AsyncWebSocketConnection extends WebSocket {
         // 这个Promise与WebSocket对象共存亡。如果连接有任何断开的迹象，这个Promise会结束。
         // 这个Promise在结束的时候不会有任何返回值。
         this.wait_disconnect = new Promise(resolve => {
+            // 如果在函数执行时，ws本身已经是在退出状态了，那么就不需要等待了，直接退出。
             if (this.readyState == CLOSED || this.readyState == CLOSING) {
                 resolve()
                 logger.info("connection closed!")
@@ -37,17 +38,14 @@ export default class AsyncWebSocketConnection extends WebSocket {
             } else {
                 message_str = JSON.stringify(data); // 如果不是字符串，使用 JSON.stringify 进行转换
             }
+            
             this.send(message_str, err => {
                 if (err) {
-                    reject()
+                    reject(err)
                 } else {
                     resolve()
                 }
-                this.off("error", reject)
-                this.off("close", reject)
             })
-            this.once("error", reject)
-            this.once("close", reject)
         })
     }
 
@@ -61,13 +59,14 @@ export default class AsyncWebSocketConnection extends WebSocket {
             try {
                 return JSON.parse(next_message)
             } catch (e) {
-                logger.error('read_json: non-json message received.')
+                logger.error(e, `read_json: non-json message received ${next_message}.`)
             }
         } else {
             logger.error("read_json: connection closed.")
             throw new Error("connection closed")
         }
     }
+
     wait_connect(): Promise<void> {
         return new Promise(resolve => {
             if (this.readyState == OPEN) resolve()
