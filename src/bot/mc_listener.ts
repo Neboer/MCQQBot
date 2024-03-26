@@ -22,7 +22,7 @@ export default class MCListener {
         if (message_match_result) {
             // 如果匹配成功
             const meta_mc_msg = new MMCMsg(mc_msg, message_match_result.groups)
-            return await this.action(bot_instance, meta_mc_msg)
+            return this.action(bot_instance, meta_mc_msg)
         }
     }
 }

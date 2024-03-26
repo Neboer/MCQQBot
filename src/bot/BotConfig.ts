@@ -9,6 +9,7 @@ export default class BotConfig {
     qq_bot_id: number
     qq_group_id: number
     qq_admin_ids: number[]
+    qq_admin_group_id: number
 
     reconnect_interval: number
 

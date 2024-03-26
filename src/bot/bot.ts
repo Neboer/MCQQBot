@@ -47,13 +47,16 @@ export default class Bot {
         return await this.mc_api.get_player_list()
     }
 
-    // 一般用来广播错误消息。让mc和qq的用户都可以收到。
-    public async broadcast_message_to_mc_qq_no_error(message_content) {
-        try {
-            return await Promise.all([this.broadcast_mc_message(message_content), this.send_default_qqgroup_message(message_content)])
-        } catch (e) {
-            logger.error(e, "broadcast_message_to_mc_qq_no_error failed.")
-        }
+    // 将某条致命错误消息广播出去。
+    public async emergency_broadcast_message_to_all(message_content: string) {
+        return Promise.all([
+            this.broadcast_mc_message(message_content).catch(reason => {
+                logger.error(reason, `emergency_broadcast_message_to_all cannot broadcast to mc: ${reason}`)
+        }),
+            this.send_default_qqgroup_message(message_content).catch(reason => {
+                logger.error(reason, `emergency_broadcast_message_to_all cannot broadcast to qq: ${reason}`)
+            })
+        ])
     }
 
     constructor(bot_config: BotConfig) {
@@ -78,12 +81,15 @@ export default class Bot {
                 logger.info(`< mc: ${JSON.stringify(incoming_packet)}`)
                 wait_mc_message = this.mc_connection.read_mc_msg()
                 for (const current_mc_listener of this.mc_listeners) {
-                    // 在这里解决错误处理的问题！下面的qq消息处理逻辑还有一处相似的地方。
+                    // 这个错误处理是针对mc消息处理函数出错的处理逻辑。
                     try {
                         await current_mc_listener.exec_on(this, incoming_packet)
                     } catch (e) {
-                        // 抓住错误后，就要广播。
-                        await this.broadcast_message_to_mc_qq_no_error(e.message)
+                        // 如果在执行函数处理此事件时遇到了异常，产生的异常会被捕获，同时被紧急报告出来。
+                        // 报告之前，别忘记先log一下。
+                        logger.error(e, `a mc_listener exec_on runs error!`)
+                        await this.emergency_broadcast_message_to_all(e.message)
+                        // 不要怕，继续循环下一个（我们有操作是不是？
                     }
                 }
             } else {
@@ -93,7 +99,15 @@ export default class Bot {
                     if (is_group_message_data(incoming_packet)) {
                         logger.info(`< qq group: ${JSON.stringify(incoming_packet)}`)
                         for (const current_qq_listener of this.qq_listeners) {
-                            await current_qq_listener.exec_on_group(this, incoming_packet)
+                            try {
+                                await current_qq_listener.exec_on_group(this, incoming_packet)
+                            } catch (e) {
+                                // 如果在执行函数处理此事件时遇到了异常，产生的异常会被捕获，同时被紧急报告出来。
+                                // 报告之前，别忘记先log一下。
+                                logger.error(e, `a qq_listener exec_on_group runs error!`)
+                                await this.emergency_broadcast_message_to_all(e.message)
+                                // 不要怕，继续循环下一个（我们有操作是不是？
+                            }
                         }
                     }
                 } else {
