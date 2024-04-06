@@ -1,4 +1,3 @@
-import {fetch, RequestInit} from 'undici'; // 请确保你已经安装了node-fetch库
 import logger from '../bot/logging'
 import {check_auth_api_failed, check_auth_api_successful} from "./api_schema/auth_schema";
 

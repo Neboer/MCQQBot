@@ -3,6 +3,9 @@
   "version": "0.3.5",
   "description": "QQ-MC消息互通机器人",
   "main": "main.js",
+  "engines": {
+    "node": ">=v18.0.0"
+  },
   "repository": {
     "type": "git",
     "url": "https://github.com/Neboer/MCQQBot"
@@ -17,15 +20,14 @@
     "async-mutex": "^0.4.0",
     "cancelable-promise": "^4.3.1",
     "eta": "^3.1.1",
-    "undici": "5.26.2",
     "ws": "^8.13.0",
     "yaml": "^2.3.1"
   },
   "devDependencies": {
-    "node": "^21.7.1",
-    "pino-pretty": "^10.2.0",
     "@types/node": "^20.4.10",
     "@types/pino": "^7.0.5",
-    "@types/ws": "^8.5.5"
+    "@types/ws": "^8.5.5",
+    "node": "^21.7.1",
+    "pino-pretty": "^10.2.0"
   }
 }

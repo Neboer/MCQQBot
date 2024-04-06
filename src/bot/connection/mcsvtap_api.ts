@@ -1,4 +1,3 @@
-import {fetch} from "undici";
 import logger from "../logging";
 import OnlinePlayer from "../schema/mcsvtap_api/OnlinePlayer";
 

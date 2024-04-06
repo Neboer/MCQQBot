@@ -29,6 +29,15 @@
     玩家登出广播:
       - 玩家<%= it.name %>已下线，欢迎再来哦。
       - 玩家<%= it.name %>已经驾驶飞船离开啦~
+  进度:
+    玩家达成进度:
+      - 玩家<%= it.name %>达成进度“<%= it.advancement %>”。
+      - 小伙伴<%= it.name %>刚刚达成进度“<%= it.advancement %>”。
+    玩家达成目标:
+      - 玩家<%= it.name %>实现了目标“<%= it.advancement %>”！厉害！
+      - 小伙伴<%= it.name %>刚刚取得了目标“<%= it.advancement %>”！太强了！
+    玩家达成挑战:
+      - 小伙伴<%= it.name %>刚刚成功完成了挑战“<%= it.advancement %>”，展现了自己强大的实力！大家一起恭喜他呀~
 消息:
   转发MC消息到QQ:
     - "<<%= it.name %>> <%= it.message %>"
