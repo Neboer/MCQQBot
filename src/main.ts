@@ -9,6 +9,7 @@ import bind_player_award_reporter from "./bot_function/player_award_reporter";
 import {load_config} from "./load_config";
 import BotConfig from "./bot/BotConfig";
 import BaiduTextFilter from "./baidu_text_filter";
+import bind_negactivity_listener from "./bot_function/negactivity_reporter";
 
 const global_config = load_config()
 const KyaruBot = new Bot(new BotConfig(global_config.bot))
@@ -26,6 +27,7 @@ bind_message_deliverer(KyaruBot, text_builder, baidu_msg_filter)
 bind_state_reporter(KyaruBot, text_builder)
 bind_session_reporter(KyaruBot, text_builder)
 bind_player_award_reporter(KyaruBot, text_builder)
+bind_negactivity_listener(KyaruBot, text_builder)
 
 KyaruBot.on_qq_group_command("version", false, async (bot_instance, m_qq_msg) => {
     logger.info(`query bot version. current version is ${ctx.bot_version}`)
@@ -38,8 +40,8 @@ KyaruBot.on_qq_group_command("help", false, async (bot_instance, m_qq_msg) => {
 })
 
 KyaruBot.on_qq_group_command("neboer", false, async (bot_instance, m_qq_msg) => {
-    logger.info(`help packet`)
-    await bot_instance.send_default_qqgroup_message(`管理.彩蛋.触发Neboer`)
+    logger.info(`neboer packet`)
+    await bot_instance.send_default_qqgroup_message(text_builder.build_random_translate_str('管理.彩蛋.触发Neboer'))
 })
 
 KyaruBot.run()

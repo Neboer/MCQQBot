@@ -1,6 +1,6 @@
 {
   "name": "mc-qq-bot",
-  "version": "0.3.5",
+  "version": "0.3.6.1-ldmc",
   "description": "QQ-MC消息互通机器人",
   "main": "main.js",
   "engines": {
