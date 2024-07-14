@@ -2,6 +2,7 @@
 import Bot from "../bot/bot";
 import TextBuilder from "../TextBuilder";
 import logger from "../bot/logging";
+import {remove_ANSI_color} from "../bot/utils";
 
 export default function bind_state_reporter(bot: Bot, text_builder: TextBuilder) {
     bot.on_qq_group_command("mc", false, async (bot_instance, m_qq_msg) => {
@@ -11,7 +12,7 @@ export default function bind_state_reporter(bot: Bot, text_builder: TextBuilder)
                 // 服务器里还有玩家在线
                 bot_instance.send_default_qqgroup_message(
                     text_builder.build_random_translate_str('状态.在线玩家',
-                        players.map(p => p.displayName)), true)
+                        players.map(p => remove_ANSI_color(p.displayName))), true)
             } else {
                 bot_instance.send_default_qqgroup_message(text_builder.build_random_translate_str('状态.无人在线'))
             }

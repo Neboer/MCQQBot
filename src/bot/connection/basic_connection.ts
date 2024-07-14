@@ -39,6 +39,9 @@ export default class BasicConnection extends AsyncEventEmitter {
                     logger.info(`connected to ${this.ws_uri}`)
                     this.emit("connection_reconnected")
                 })
+                this.ws_connection.once("error", err => {
+                    logger.error(`error connecting to ${this.ws_uri}, error: ${err}`)
+                })
                 logger.info(`trying to connect to ${this.ws_uri}`)
                 // 至少重新等待5秒再重连。如果连接保持时间超过5秒，则立即重连。
                 await Promise.all([sleep(5000), this.ws_connection.wait_disconnect])
@@ -52,7 +55,12 @@ export default class BasicConnection extends AsyncEventEmitter {
     public constructor(ws_uri: string, extra_options?: WebSocket.ClientOptions | ClientRequestArgs) {
         super()
         this.ws_uri = ws_uri
-        this.ws_options = extra_options
+        this.ws_options = { ... extra_options}
+
+        if (this.uri_is_ipv6(ws_uri)) {
+            logger.info("target ipv6 address", ws_uri)
+            // this.ws_options.family = 6 // no need to set this.
+        }
         // this.ws_connection = new AsyncWebSocketConnection(this.ws_uri, extra_options)
         this.auto_reconnect()
     }
@@ -80,5 +88,10 @@ export default class BasicConnection extends AsyncEventEmitter {
     public async must_send_json(data: any) {
         await this.wait_for_reconnection()
         return await this.ws_connection.send_json(data)
+    }
+
+    private uri_is_ipv6(ws_uri) {
+        const colonCount = (ws_uri.match(/:/g) || []).length;
+        return colonCount > 2;
     }
 }

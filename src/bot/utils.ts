@@ -11,7 +11,9 @@ export function sleep(ms) {
 }
 
 export function remove_ANSI_color(input_str: string): string {
-    return input_str.replace(/[\u001b\u009b][[()#;?]*(?:[0-9]{1,4}(?:;[0-9]{0,4})*)?[0-9A-ORZcf-nqry=><]/g, '')
+    let s1 = input_str.replace(/[\u001b\u009b][[()#;?]*(?:[0-9]{1,4}(?:;[0-9]{0,4})*)?[0-9A-ORZcf-nqry=><]/g, '')
+    let s2 = s1.replace(/§[0-9a-fk-or]/gi, '')
+    return s2
 }
 
 export class Counter {
